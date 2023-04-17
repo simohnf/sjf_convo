@@ -85,7 +85,7 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
             auto lineSize = IR.getSample( c, s*stride ) * hChanHeight;
             if ( lineSize >= 0 )
             {
-                g.drawVerticalLine( thumbnailBounds.getX() + s, centre+lineSize, centre );
+                g.drawVerticalLine( thumbnailBounds.getX() + s, centre-lineSize, centre );
             }
             else
             {
