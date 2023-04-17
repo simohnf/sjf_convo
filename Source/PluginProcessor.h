@@ -9,7 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "../../sjf_audio/JuceFIR.h"
+//#include "../../sjf_audio/JuceFIR.h"
 #include "../../sjf_audio/sjf_convo.h"
 //==============================================================================
 /**
@@ -59,6 +59,8 @@ public:
 
     void loadImpulse(){ m_convo.loadImpulse(); }
     void reverseImpulse(){ m_convo.reverseImpulse(); }
+    void trimImpulseEnd(){ m_convo.trimImpulseEnd(); }
+    
     void setPreDelay( float preDelayInMS ){ m_convo.setPreDelay( getSampleRate() * 0.001f * preDelayInMS ); }
     
     juce::AudioBuffer< float >& getIRBuffer(){ return m_convo.getIRBuffer(); }

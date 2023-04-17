@@ -20,6 +20,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     loadImpulseButton.onClick = [this]
     {
         audioProcessor.loadImpulse();
+        repaint();
     };
     
     
@@ -36,6 +37,17 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
         thumbnail.addBlock( nSamps, IR, 0, nSamps );
         repaint();
     };
+    
+    
+    
+    addAndMakeVisible( &trimImpulseButton );
+    trimImpulseButton.setButtonText( "Trim IR" );
+    trimImpulseButton.onClick = [this]
+    {
+        audioProcessor.trimImpulseEnd();
+        repaint();
+    };
+    
     
     addAndMakeVisible( &preDelaySlider );
     preDelaySlider.setRange( 0 , 1000 );
@@ -106,7 +118,8 @@ void Sjf_convoAudioProcessorEditor::resized()
 {
     loadImpulseButton.setBounds( 0, 0, 50, TEXT_HEIGHT );
     reverseImpulseButton.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
-    preDelaySlider.setBounds( reverseImpulseButton.getX(), reverseImpulseButton.getBottom(), 100, 100 );
+    trimImpulseButton.setBounds( reverseImpulseButton.getX(), reverseImpulseButton.getBottom(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
+    preDelaySlider.setBounds( trimImpulseButton.getX(), trimImpulseButton.getBottom(), 100, 100 );
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 }

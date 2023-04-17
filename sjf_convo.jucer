@@ -2,7 +2,8 @@
 
 <JUCERPROJECT id="ZfsFIb" name="sjf_convo" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyWebsite="https://simohnf.github.io/"
-              pluginManufacturer="sjf" pluginFormats="buildAU,buildAUv3,buildVST3">
+              pluginManufacturer="sjf" pluginFormats="buildAU,buildAUv3,buildVST3"
+              displaySplashScreen="1">
   <MAINGROUP id="knvcWG" name="sjf_convo">
     <GROUP id="{DEA4F02F-DF9B-44D0-44B6-34EB0FBF41E4}" name="Source">
       <FILE id="U7Gytz" name="PluginProcessor.cpp" compile="1" resource="0"

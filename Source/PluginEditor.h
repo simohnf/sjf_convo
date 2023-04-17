@@ -30,7 +30,7 @@ private:
     // access the processor object that created it.
     Sjf_convoAudioProcessor& audioProcessor;
 
-    juce::TextButton loadImpulseButton, reverseImpulseButton;
+    juce::TextButton loadImpulseButton, reverseImpulseButton, trimImpulseButton;
     juce::Slider preDelaySlider;
     
     juce::AudioFormatManager formatManager;
