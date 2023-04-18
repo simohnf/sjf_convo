@@ -10,17 +10,21 @@
 #include "PluginEditor.h"
 
 #define TEXT_HEIGHT 20
+#define SLIDER_SIZE 100
 //==============================================================================
 Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProcessor& p)
-: AudioProcessorEditor (&p), audioProcessor (p), thumbnailCache (5), thumbnail (512, formatManager, thumbnailCache)
+: AudioProcessorEditor (&p), audioProcessor (p)
 {
+    setLookAndFeel( &otherLookAndFeel );
+    
     
     addAndMakeVisible( &loadImpulseButton );
     loadImpulseButton.setButtonText( "Load IR" );
     loadImpulseButton.onClick = [this]
     {
         audioProcessor.loadImpulse();
-        repaint();
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//        repaint();
     };
     
     
@@ -30,12 +34,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     reverseImpulseButton.onClick = [this]
     {
         audioProcessor.reverseImpulse();
-        auto IR = audioProcessor.getIRBuffer();
-        auto SR = audioProcessor.getIRSampleRate();
-        auto nSamps = IR.getNumSamples();
-        thumbnail.reset( IR.getNumChannels(), SR, nSamps );
-        thumbnail.addBlock( nSamps, IR, 0, nSamps );
-        repaint();
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//        repaint();
     };
     
     
@@ -45,7 +45,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     trimImpulseButton.onClick = [this]
     {
         audioProcessor.trimImpulseEnd();
-        repaint();
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//        repaint();
     };
     
     
@@ -60,11 +61,16 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
 //    thumbnail.addChangeListener (this);
     
-    setSize (400, 300);
+    addAndMakeVisible( &waveformThumbnail );
+    waveformThumbnail.setNormaliseFlag( true );
+    
+    
+    setSize (500, 400);
 }
 
 Sjf_convoAudioProcessorEditor::~Sjf_convoAudioProcessorEditor()
 {
+    setLookAndFeel( nullptr );
 }
 
 //==============================================================================
@@ -77,51 +83,19 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (15.0f);
     g.drawFittedText( "sjf_convo", 0, 0, getWidth(), TEXT_HEIGHT, juce::Justification::centred, 1 );
     
-    juce::Rectangle<int> thumbnailBounds ( 100, 0, getWidth() - 100, getHeight() - 120);
     
     
-    auto IR = audioProcessor.getIRBuffer();
-    auto SR = audioProcessor.getIRSampleRate();
-    auto nSamps = IR.getNumSamples();
-    auto nChans = IR.getNumChannels();
-    if ( nChans > 0 )
-    {
-        auto stride = nSamps / thumbnailBounds.getWidth();
-    auto chanHeight = thumbnailBounds.getHeight() / nChans;
-    auto hChanHeight = chanHeight * 0.5;
-    for ( int c = 0; c < nChans; c++ )
-    {
-        auto centre = c * chanHeight + thumbnailBounds.getY() + hChanHeight;
-        for ( int s = 0; s < thumbnailBounds.getWidth(); s++ )
-        {
-            auto lineSize = IR.getSample( c, s*stride ) * hChanHeight;
-            if ( lineSize >= 0 )
-            {
-                g.drawVerticalLine( thumbnailBounds.getX() + s, centre-lineSize, centre );
-            }
-            else
-            {
-                g.drawVerticalLine( thumbnailBounds.getX() + s, centre, centre + abs(lineSize) );
-            }
-            
-        }
-    }
-        
-    }
-//    if (thumbnail.getNumChannels() == 0)
-//        paintIfNoFileLoaded (g, thumbnailBounds);
-//    else
-//        paintIfFileLoaded (g, thumbnailBounds);
+
 }
 
 void Sjf_convoAudioProcessorEditor::resized()
 {
-    loadImpulseButton.setBounds( 0, 0, 50, TEXT_HEIGHT );
-    reverseImpulseButton.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
-    trimImpulseButton.setBounds( reverseImpulseButton.getX(), reverseImpulseButton.getBottom(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
+    loadImpulseButton.setBounds( 0, TEXT_HEIGHT, 50, TEXT_HEIGHT );
+    reverseImpulseButton.setBounds( loadImpulseButton.getRight(), loadImpulseButton.getY(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
+    trimImpulseButton.setBounds( reverseImpulseButton.getRight(), reverseImpulseButton.getY(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
     preDelaySlider.setBounds( trimImpulseButton.getX(), trimImpulseButton.getBottom(), 100, 100 );
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    
+    waveformThumbnail.setBounds(loadImpulseButton.getX(), preDelaySlider.getBottom(), getWidth(), SLIDER_SIZE*2 );
 }
 
 

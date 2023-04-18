@@ -10,7 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-
+#include "../../sjf_audio/sjf_widgets.h"
+#include "../../sjf_audio/sjf_LookAndFeel.h"
 //==============================================================================
 /**
 */
@@ -30,34 +31,17 @@ private:
     // access the processor object that created it.
     Sjf_convoAudioProcessor& audioProcessor;
 
+    sjf_lookAndFeel otherLookAndFeel;
+    
     juce::TextButton loadImpulseButton, reverseImpulseButton, trimImpulseButton;
     juce::Slider preDelaySlider;
     
-    juce::AudioFormatManager formatManager;
-    juce::AudioThumbnailCache thumbnailCache;                  
-    juce::AudioThumbnail thumbnail;
+//    juce::AudioFormatManager formatManager;
+//    juce::AudioThumbnailCache thumbnailCache;
+//    juce::AudioThumbnail thumbnail;
     
-    void paintIfNoFileLoaded (juce::Graphics& g, const juce::Rectangle<int>& thumbnailBounds)
-    {
-        g.setColour (juce::Colours::darkgrey);
-        g.fillRect (thumbnailBounds);
-        g.setColour (juce::Colours::white);
-        g.drawFittedText ("No File Loaded", thumbnailBounds, juce::Justification::centred, 1);
-    }
+
     
-    void paintIfFileLoaded (juce::Graphics& g, const juce::Rectangle<int>& thumbnailBounds)
-    {
-        g.setColour (juce::Colours::white);
-        g.fillRect (thumbnailBounds);
-        
-        g.setColour (juce::Colours::red);                               // [8]
-        
-        thumbnail.drawChannels (g,                                      // [9]
-                                thumbnailBounds,
-                                0.0,                                    // start time
-                                thumbnail.getTotalLength(),             // end time
-                                1.0f);                                  // vertical zoom
-    }
-    
+    sjf_waveform waveformThumbnail;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessorEditor)
 };
