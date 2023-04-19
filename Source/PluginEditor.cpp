@@ -24,18 +24,23 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     {
         audioProcessor.loadImpulse();
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-//        repaint();
     };
     
     
+    
+    addAndMakeVisible( &panicButton );
+    panicButton.setButtonText( "PANIC" );
+    panicButton.onClick = [this]
+    {
+        audioProcessor.PANIC();
+    };
     
     addAndMakeVisible( &reverseImpulseButton );
     reverseImpulseButton.setButtonText( "Reverse IR" );
     reverseImpulseButton.onClick = [this]
     {
-        audioProcessor.reverseImpulse();
+        audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-//        repaint();
     };
     
     
@@ -44,9 +49,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     trimImpulseButton.setButtonText( "Trim IR" );
     trimImpulseButton.onClick = [this]
     {
-        audioProcessor.trimImpulseEnd();
+        audioProcessor.trimImpulseEnd( trimImpulseButton.getToggleState() );
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-//        repaint();
     };
     
     
@@ -59,7 +63,61 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
         audioProcessor.setPreDelay( preDelaySlider.getValue() );
     };
     
-//    thumbnail.addChangeListener (this);
+    
+    addAndMakeVisible( &stretchSlider );
+    stretchSlider.setRange( -2 , 2 );
+    stretchSlider.setSliderStyle( juce::Slider::Rotary );
+    stretchSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    stretchSlider.onValueChange = [this]
+    {
+        audioProcessor.setStrecthFactor( stretchSlider.getValue() );
+    };
+
+    
+    
+    addAndMakeVisible( &startAndEndSlider );
+    startAndEndSlider.setRange( 0 , 1 );
+    startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
+    startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    startAndEndSlider.onValueChange = [this]
+    {
+//        DBG( startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue() );
+        audioProcessor.setImpulseStartAndEnd( startAndEndSlider.getMinValue(), startAndEndSlider.getMaxValue() );
+//        audioProcessor.setStrecthFactor( stretchSlider.getValue() );
+    };
+    
+    addAndMakeVisible( &lpfCutoffSlider );
+    lpfCutoffSlider.setRange( 20, 20000 );
+    lpfCutoffSlider.setValue( 20000 );
+    lpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
+    lpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    lpfCutoffSlider.onValueChange = [this]
+    {
+        audioProcessor.setLPFCutoff( lpfCutoffSlider.getValue() );
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+    };
+    
+    addAndMakeVisible( &hpfCutoffSlider );
+    hpfCutoffSlider.setRange( 20, 20000 );
+    hpfCutoffSlider.setValue( 20 );
+    hpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
+    hpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    hpfCutoffSlider.onValueChange = [this]
+    {
+        audioProcessor.setHPFCutoff( hpfCutoffSlider.getValue() );
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+    };
+    
+    addAndMakeVisible( &filterPositionBox );
+    filterPositionBox.addItem( "Off", 1 );
+    filterPositionBox.addItem( "IR", 2 );
+    filterPositionBox.addItem( "Output", 3 );
+    filterPositionBox.setSelectedId( 1 );
+    filterPositionBox.onChange = [this]
+    {
+        audioProcessor.setFilterPosition( filterPositionBox.getSelectedId() );
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+    };
     
     addAndMakeVisible( &waveformThumbnail );
     waveformThumbnail.setNormaliseFlag( true );
@@ -93,9 +151,17 @@ void Sjf_convoAudioProcessorEditor::resized()
     loadImpulseButton.setBounds( 0, TEXT_HEIGHT, 50, TEXT_HEIGHT );
     reverseImpulseButton.setBounds( loadImpulseButton.getRight(), loadImpulseButton.getY(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
     trimImpulseButton.setBounds( reverseImpulseButton.getRight(), reverseImpulseButton.getY(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
-    preDelaySlider.setBounds( trimImpulseButton.getX(), trimImpulseButton.getBottom(), 100, 100 );
+    
+    preDelaySlider.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), 100, 100 );
+    stretchSlider.setBounds( preDelaySlider.getRight(), preDelaySlider.getY(), 100, 100 );
+    
+    lpfCutoffSlider.setBounds( stretchSlider.getRight(), stretchSlider.getY(), 100, 100 );
+    hpfCutoffSlider.setBounds( lpfCutoffSlider.getRight(), lpfCutoffSlider.getY(), 100, 100 );
+    filterPositionBox.setBounds( hpfCutoffSlider.getRight(), hpfCutoffSlider.getY(), 50, TEXT_HEIGHT );
+    panicButton.setBounds( filterPositionBox.getX(), filterPositionBox.getBottom(), 50, TEXT_HEIGHT );
     
     waveformThumbnail.setBounds(loadImpulseButton.getX(), preDelaySlider.getBottom(), getWidth(), SLIDER_SIZE*2 );
+    startAndEndSlider.setBounds( waveformThumbnail.getX(), waveformThumbnail.getBottom(), waveformThumbnail.getWidth(), TEXT_HEIGHT );
 }
 
 

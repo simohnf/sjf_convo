@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 //#include "../../sjf_audio/JuceFIR.h"
 #include "../../sjf_audio/sjf_convo.h"
+#include "../../sjf_audio/sjf_audioUtilities.h"
 //==============================================================================
 /**
 */
@@ -58,8 +59,27 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     void loadImpulse(){ m_convo.loadImpulse(); }
-    void reverseImpulse(){ m_convo.reverseImpulse(); }
-    void trimImpulseEnd(){ m_convo.trimImpulseEnd(); }
+    void PANIC(){ m_convo.PANIC(); }
+    void reverseImpulse( bool shouldReverseImpulse ){ m_convo.reverseImpulse( shouldReverseImpulse ); }
+    void trimImpulseEnd( bool shouldTrimImpulse ){ m_convo.trimImpulseEnd( shouldTrimImpulse ); }
+    void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
+    void setStrecthFactor( float stretchFactor )
+    {
+        stretchFactor = std::pow( 2.0f, stretchFactor );
+        m_convo.setStrecthFactor( stretchFactor );
+    }
+    
+    void setFilterPosition( int filterPosition ){ m_convo.setFilterPosition( filterPosition ); }
+    void setLPFCutoff( float f )
+    {
+        auto cutoffCoefficient = calculateLPFCoefficient< float >( f, getSampleRate() );
+        m_convo.setLPFCutoff( cutoffCoefficient );
+    }
+    void setHPFCutoff( float f )
+    {
+        auto cutoffCoefficient = calculateLPFCoefficient< float >( f, getSampleRate() );
+        m_convo.setHPFCutoff( cutoffCoefficient );
+    }
     
     void setPreDelay( float preDelayInMS ){ m_convo.setPreDelay( getSampleRate() * 0.001f * preDelayInMS ); }
     

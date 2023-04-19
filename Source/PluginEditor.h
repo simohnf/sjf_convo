@@ -33,8 +33,10 @@ private:
 
     sjf_lookAndFeel otherLookAndFeel;
     
-    juce::TextButton loadImpulseButton, reverseImpulseButton, trimImpulseButton;
-    juce::Slider preDelaySlider;
+    juce::TextButton loadImpulseButton, panicButton;
+    juce::ToggleButton reverseImpulseButton, trimImpulseButton;
+    juce::ComboBox filterPositionBox;
+    juce::Slider preDelaySlider, stretchSlider, startAndEndSlider, lpfCutoffSlider, hpfCutoffSlider;
     
 //    juce::AudioFormatManager formatManager;
 //    juce::AudioThumbnailCache thumbnailCache;
