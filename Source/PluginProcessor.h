@@ -63,6 +63,11 @@ public:
     void reverseImpulse( bool shouldReverseImpulse ){ m_convo.reverseImpulse( shouldReverseImpulse ); }
     void trimImpulseEnd( bool shouldTrimImpulse ){ m_convo.trimImpulseEnd( shouldTrimImpulse ); }
     void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
+    void setAmplitudeEnvelope( std::vector< std::array< float, 2 > > env )
+    {
+        DBG("SHOULD SET ENVELOPE");
+        m_convo.setAmplitudeEnvelope( env );
+    }
     void setStrecthFactor( float stretchFactor )
     {
         stretchFactor = std::pow( 2.0f, stretchFactor );

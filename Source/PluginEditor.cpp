@@ -121,7 +121,11 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &waveformThumbnail );
     waveformThumbnail.setNormaliseFlag( true );
-    
+    waveformThumbnail.onMouseEvent = [this]
+    {
+        DBG( "WAVEFORM MOUSE EVENT " );
+        audioProcessor.setAmplitudeEnvelope( waveformThumbnail.getEnvelope() );
+    };
     
     setSize (500, 400);
 }
