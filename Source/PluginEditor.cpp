@@ -28,18 +28,35 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     
     
-    addAndMakeVisible( &panicButton );
-    panicButton.setButtonText( "PANIC" );
-    panicButton.onClick = [this]
-    {
-        audioProcessor.PANIC();
-    };
+//    addAndMakeVisible( &panicButton );
+//    panicButton.setButtonText( "PANIC" );
+//    panicButton.onClick = [this]
+//    {
+//        audioProcessor.PANIC();
+//    };
     
     addAndMakeVisible( &reverseImpulseButton );
     reverseImpulseButton.setButtonText( "Reverse IR" );
     reverseImpulseButton.onClick = [this]
     {
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
+        waveformThumbnail.reverseEnvelope();
+        auto max = startAndEndSlider.getMaxValue();
+        auto min = startAndEndSlider.getMinValue();
+        auto dif = max - min;
+        min = 1.0f - max;
+        max = min + dif;
+        if ( max >= startAndEndSlider.getMaxValue() )
+        {
+            startAndEndSlider.setMaxValue( max );
+            startAndEndSlider.setMinValue( min );
+        }
+        else
+        {
+            startAndEndSlider.setMinValue( min );
+            startAndEndSlider.setMaxValue( max );
+        }
+        
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
     
@@ -79,6 +96,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     startAndEndSlider.setRange( 0 , 1 );
     startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
     startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    startAndEndSlider.setMinValue( 0 );
+    startAndEndSlider.setMaxValue( 1 );
     startAndEndSlider.onValueChange = [this]
     {
 //        DBG( startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue() );
@@ -121,6 +140,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &waveformThumbnail );
     waveformThumbnail.setNormaliseFlag( true );
+    waveformThumbnail.shouldOutputOnMouseUp( true );
     waveformThumbnail.onMouseEvent = [this]
     {
         DBG( "WAVEFORM MOUSE EVENT " );
@@ -162,7 +182,7 @@ void Sjf_convoAudioProcessorEditor::resized()
     lpfCutoffSlider.setBounds( stretchSlider.getRight(), stretchSlider.getY(), 100, 100 );
     hpfCutoffSlider.setBounds( lpfCutoffSlider.getRight(), lpfCutoffSlider.getY(), 100, 100 );
     filterPositionBox.setBounds( hpfCutoffSlider.getRight(), hpfCutoffSlider.getY(), 50, TEXT_HEIGHT );
-    panicButton.setBounds( filterPositionBox.getX(), filterPositionBox.getBottom(), 50, TEXT_HEIGHT );
+//    panicButton.setBounds( filterPositionBox.getX(), filterPositionBox.getBottom(), 50, TEXT_HEIGHT );
     
     waveformThumbnail.setBounds(loadImpulseButton.getX(), preDelaySlider.getBottom(), getWidth(), SLIDER_SIZE*2 );
     startAndEndSlider.setBounds( waveformThumbnail.getX(), waveformThumbnail.getBottom(), waveformThumbnail.getWidth(), TEXT_HEIGHT );
