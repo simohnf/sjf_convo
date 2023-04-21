@@ -15,7 +15,7 @@
 //==============================================================================
 /**
 */
-class Sjf_convoAudioProcessorEditor  : public juce::AudioProcessorEditor
+class Sjf_convoAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     Sjf_convoAudioProcessorEditor (Sjf_convoAudioProcessor&);
@@ -24,7 +24,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-
+    void timerCallback() override;
     
 private:
     // This reference is provided as a quick way for your editor to
@@ -36,12 +36,12 @@ private:
     juce::TextButton loadImpulseButton /*, panicButton*/;
     juce::ToggleButton reverseImpulseButton, trimImpulseButton;
     juce::ComboBox filterPositionBox;
-    juce::Slider preDelaySlider, stretchSlider, startAndEndSlider, lpfCutoffSlider, hpfCutoffSlider;
+    juce::Slider preDelaySlider, stretchSlider, startAndEndSlider, lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
     
-//    juce::AudioFormatManager formatManager;
-//    juce::AudioThumbnailCache thumbnailCache;
-//    juce::AudioThumbnail thumbnail;
+    juce::ToggleButton tooltipsToggle;
     
+    juce::Label tooltipLabel;
+     juce::String MAIN_TOOLTIP = "sjf_convo: \nConvolution plugin... primarily designed as a convolution reverb algorithm, but should be capable of convolving input signal with audio file (although the larger the file the more intense the CPU usage..)\n";
 
     
     sjf_waveform waveformThumbnail;

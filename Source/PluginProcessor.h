@@ -88,11 +88,17 @@ public:
     
     void setPreDelay( float preDelayInMS ){ m_convo.setPreDelay( getSampleRate() * 0.001f * preDelayInMS ); }
     
+    void setDryWet( float wetPercentage ){ m_wet = wetPercentage; }
+    void setInputLevelDB( float inputLevelDB ) { m_inputLevelDB = inputLevelDB; }
+    
+    
     juce::AudioBuffer< float >& getIRBuffer(){ return m_convo.getIRBuffer(); }
     double getIRSampleRate() { return m_convo.getIRSampleRate(); }
 private:
 
-    sjf_convo< 2, 2048 > m_convo;
+    sjf_convo< 2, 2048 > m_convo; 
+    juce::AudioBuffer< float > m_convBuffer;
+    float m_wet = 0, m_inputLevelDB = 0;
     
 //    juce::dsp::Convolution m_conv;
     //==============================================================================

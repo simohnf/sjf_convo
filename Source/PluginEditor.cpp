@@ -11,6 +11,8 @@
 
 #define TEXT_HEIGHT 20
 #define SLIDER_SIZE 100
+#define WIDTH 600
+#define HEIGHT 400
 //==============================================================================
 Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProcessor& p)
 : AudioProcessorEditor (&p), audioProcessor (p)
@@ -36,7 +38,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
 //    };
     
     addAndMakeVisible( &reverseImpulseButton );
-    reverseImpulseButton.setButtonText( "Reverse IR" );
+    reverseImpulseButton.setButtonText( "Reverse" );
     reverseImpulseButton.onClick = [this]
     {
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
@@ -63,7 +65,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     
     addAndMakeVisible( &trimImpulseButton );
-    trimImpulseButton.setButtonText( "Trim IR" );
+    trimImpulseButton.setButtonText( "Trim" );
     trimImpulseButton.onClick = [this]
     {
         audioProcessor.trimImpulseEnd( trimImpulseButton.getToggleState() );
@@ -100,7 +102,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     startAndEndSlider.setMaxValue( 1 );
     startAndEndSlider.onValueChange = [this]
     {
-//        DBG( startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue() );
+        DBG( startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue() );
         audioProcessor.setImpulseStartAndEnd( startAndEndSlider.getMinValue(), startAndEndSlider.getMaxValue() );
 //        audioProcessor.setStrecthFactor( stretchSlider.getValue() );
     };
@@ -139,15 +141,64 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     };
     
     addAndMakeVisible( &waveformThumbnail );
-    waveformThumbnail.setNormaliseFlag( true );
+//    waveformThumbnail.setNormaliseFlag( true );
     waveformThumbnail.shouldOutputOnMouseUp( true );
     waveformThumbnail.onMouseEvent = [this]
     {
         DBG( "WAVEFORM MOUSE EVENT " );
         audioProcessor.setAmplitudeEnvelope( waveformThumbnail.getEnvelope() );
+        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
     
-    setSize (500, 400);
+    
+    addAndMakeVisible( &dryWetSlider );
+    dryWetSlider.setRange( 0, 100 );
+    dryWetSlider.setSliderStyle( juce::Slider::Rotary );
+    dryWetSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
+    dryWetSlider.onValueChange = [this]
+    {
+        audioProcessor.setDryWet( dryWetSlider.getValue() );
+    };
+    
+    
+    addAndMakeVisible( &inputLevelSlider );
+    inputLevelSlider.setRange( -100, 6 );
+    inputLevelSlider.setValue( 0 );
+    inputLevelSlider.setSliderStyle( juce::Slider::Rotary );
+    inputLevelSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
+    inputLevelSlider.onValueChange = [this]
+    {
+        audioProcessor.setInputLevelDB( inputLevelSlider.getValue() );
+    };
+    
+    
+    addAndMakeVisible( &tooltipsToggle );
+    tooltipsToggle.setButtonText("HINTS");
+    tooltipsToggle.onClick = [this]
+    {
+        if (tooltipsToggle.getToggleState())
+        {
+            //            tooltipWindow.getObject().setAlpha(1.0f);
+            tooltipLabel.setVisible( true );
+            setSize (WIDTH, HEIGHT+tooltipLabel.getHeight());
+        }
+        else
+        {
+            tooltipLabel.setVisible( false );
+            setSize (WIDTH, HEIGHT);
+            //            tooltipWindow.getObject().setAlpha(0.0f);
+        }
+    };
+    tooltipsToggle.setTooltip( MAIN_TOOLTIP );
+    
+    addAndMakeVisible(tooltipLabel);
+    tooltipLabel.setVisible( false );
+    tooltipLabel.setColour( juce::Label::backgroundColourId, otherLookAndFeel.backGroundColour.withAlpha( 0.85f ) );
+    tooltipLabel.setTooltip( MAIN_TOOLTIP );
+    
+    setSize (WIDTH, HEIGHT);
+    startTimer( 200 );
+    
 }
 
 Sjf_convoAudioProcessorEditor::~Sjf_convoAudioProcessorEditor()
@@ -165,9 +216,6 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (15.0f);
     g.drawFittedText( "sjf_convo", 0, 0, getWidth(), TEXT_HEIGHT, juce::Justification::centred, 1 );
     
-    
-    
-
 }
 
 void Sjf_convoAudioProcessorEditor::resized()
@@ -176,17 +224,31 @@ void Sjf_convoAudioProcessorEditor::resized()
     reverseImpulseButton.setBounds( loadImpulseButton.getRight(), loadImpulseButton.getY(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
     trimImpulseButton.setBounds( reverseImpulseButton.getRight(), reverseImpulseButton.getY(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
     
-    preDelaySlider.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), 100, 100 );
-    stretchSlider.setBounds( preDelaySlider.getRight(), preDelaySlider.getY(), 100, 100 );
+    inputLevelSlider.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), SLIDER_SIZE, SLIDER_SIZE );
+    preDelaySlider.setBounds( inputLevelSlider.getRight(), inputLevelSlider.getY(), SLIDER_SIZE, SLIDER_SIZE );
+    stretchSlider.setBounds( preDelaySlider.getRight(), preDelaySlider.getY(), SLIDER_SIZE, SLIDER_SIZE );
     
-    lpfCutoffSlider.setBounds( stretchSlider.getRight(), stretchSlider.getY(), 100, 100 );
-    hpfCutoffSlider.setBounds( lpfCutoffSlider.getRight(), lpfCutoffSlider.getY(), 100, 100 );
-    filterPositionBox.setBounds( hpfCutoffSlider.getRight(), hpfCutoffSlider.getY(), 50, TEXT_HEIGHT );
-//    panicButton.setBounds( filterPositionBox.getX(), filterPositionBox.getBottom(), 50, TEXT_HEIGHT );
+    lpfCutoffSlider.setBounds( stretchSlider.getRight(), stretchSlider.getY(), SLIDER_SIZE, SLIDER_SIZE );
+    hpfCutoffSlider.setBounds( lpfCutoffSlider.getRight(), lpfCutoffSlider.getY(), SLIDER_SIZE, SLIDER_SIZE );
+    filterPositionBox.setBounds( hpfCutoffSlider.getRight(), hpfCutoffSlider.getY(), SLIDER_SIZE*0.5, TEXT_HEIGHT );
+    dryWetSlider.setBounds( filterPositionBox.getRight(), filterPositionBox.getY(), SLIDER_SIZE, SLIDER_SIZE );
     
     waveformThumbnail.setBounds(loadImpulseButton.getX(), preDelaySlider.getBottom(), getWidth(), SLIDER_SIZE*2 );
     startAndEndSlider.setBounds( waveformThumbnail.getX(), waveformThumbnail.getBottom(), waveformThumbnail.getWidth(), TEXT_HEIGHT );
+    
+    tooltipsToggle.setBounds( WIDTH - 50, HEIGHT - TEXT_HEIGHT, 50, TEXT_HEIGHT );
+    
+    tooltipLabel.setBounds( 0, HEIGHT, WIDTH, TEXT_HEIGHT*4);
 }
+
+
+
+void Sjf_convoAudioProcessorEditor::timerCallback()
+{
+    sjf_setTooltipLabel( this, MAIN_TOOLTIP, tooltipLabel );
+    
+}
+
 
 
 //void Sjf_convoAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaster* source)

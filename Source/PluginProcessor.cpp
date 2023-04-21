@@ -23,7 +23,8 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
 #endif
 {
 
-//    m_convo.prepare( getSampleRate(), 128 );
+
+    m_convBuffer.setSize( 2, getBlockSize() );
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -96,6 +97,7 @@ void Sjf_convoAudioProcessor::changeProgramName (int index, const juce::String& 
 void Sjf_convoAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     m_convo.prepare( sampleRate, samplesPerBlock );
+    m_convBuffer.setSize( 2, samplesPerBlock );
 }
 
 void Sjf_convoAudioProcessor::releaseResources()
@@ -135,7 +137,7 @@ void Sjf_convoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
+    auto bufferSize = buffer.getNumSamples();
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -143,22 +145,27 @@ void Sjf_convoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear (i, 0, bufferSize );
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-//    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-//    {
-//        auto* channelData = buffer.getWritePointer (channel);
-//
-//        // ..do something to the data...
-//    }
+    m_convBuffer.makeCopyOf( buffer );
     
-    m_convo.process( buffer );
+    
+    auto inLevel = std::pow( 10, m_inputLevelDB/20 );
+    m_convBuffer.applyGain( inLevel );
+    m_convo.process( m_convBuffer );
+
+
+    auto wet = std::sqrt( m_wet * 0.01f );
+    auto dry = std::sqrt( 1 - (m_wet * 0.01f) );
+    DBG( "DRY " << dry << " WET " << wet );
+//    DBG( m_convBuffer.getNumChannels() << " " << m_convBuffer.getNumSamples()  << " " << buffer.getNumChannels() << " " << buffer.getNumSamples() );
+    buffer.applyGain( dry );
+    m_convBuffer.applyGain( wet );
+
+    for ( int c = 0; c < totalNumOutputChannels; c++ )
+    {
+        buffer.addFrom( c, 0, m_convBuffer, c, 0, bufferSize );
+    }
 }
 
 //==============================================================================
