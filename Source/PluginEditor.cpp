@@ -34,6 +34,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &reverseImpulseButton );
     reverseImpulseButton.setButtonText( "Reverse" );
+    reverseImpulseButtonAttachment.reset( new juce::AudioProcessorValueTreeState::ButtonAttachment ( valueTreeState, "reverse", reverseImpulseButton ) );
     reverseImpulseButton.onClick = [this]
     {
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
@@ -84,10 +85,11 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     stretchSlider.setTooltip("This changes the length of the impulse response. Positive stretching results in an elongated impulse reponse and reduced high frequency content, negative stretching results in a shorter impulse repsonse and increased high frequency content" );
     
     
-    addAndMakeVisible( &startAndEndSlider );
+    addAndMakeVisible( &startAndEndSlider ); 
     startAndEndSlider.setRange( 0 , 1 );
 //    startAndEndSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "stretch", stretchSlider )  );
     startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
+    startAndEndSliderAttachment.reset( new TwoValueSliderAttachment( valueTreeState, "start", "end", startAndEndSlider ) );
     startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
     startAndEndSlider.setMinValue( 0 );
     startAndEndSlider.setMaxValue( 1 );

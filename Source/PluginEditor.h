@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 #include "../../sjf_audio/sjf_widgets.h"
 #include "../../sjf_audio/sjf_LookAndFeel.h"
+#include "../../sjf_audio/TwoValueSliderAttachment.h"
 //==============================================================================
 /**
 */
@@ -50,7 +51,8 @@ private:
     
     std::unique_ptr< juce::AudioProcessorValueTreeState::ComboBoxAttachment > filterPositionBoxAttachment;
     std::unique_ptr< juce::AudioProcessorValueTreeState::ButtonAttachment > reverseImpulseButtonAttachment;
-    std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, stretchSliderAttachment, startAndEndSliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, inputLevelSliderAttachment; 
+    std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, stretchSliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, inputLevelSliderAttachment;
+    std::unique_ptr< TwoValueSliderAttachment > startAndEndSliderAttachment;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessorEditor)
 };

@@ -114,6 +114,10 @@ private:
     std::atomic<float>* preDelayParameter = nullptr;
     std::atomic<float>* startParameter = nullptr;
     std::atomic<float>* endParameterParameter = nullptr;
+    std::atomic<float>* reverseParameter = nullptr;
+    
+    juce::Value nEnvPointsParameter;
+    std::vector< std::array< juce::Value, 2 > > envelopeParameter;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessor)
 };

@@ -42,6 +42,7 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
     preDelayParameter = parameters.getRawParameterValue("preDelay");
     startParameter = parameters.getRawParameterValue("start");
     endParameterParameter = parameters.getRawParameterValue("end");
+    reverseParameter = parameters.getRawParameterValue("reverse");
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -202,12 +203,44 @@ void Sjf_convoAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    
+    auto envPoints = m_convo.getAmplitudeEnvelope();
+    auto nPoints = envPoints.size();
+    nEnvPointsParameter.setValue( (int)nPoints );
+    envelopeParameter.resize( nPoints );
+    for ( int i = 0; i < nPoints; i++ )
+    {
+        envelopeParameter[ i ][ 0 ].setValue( envPoints[ i ][ 0 ] );
+        envelopeParameter[ i ][ 1 ].setValue( envPoints[ i ][ 1 ] );
+    }
+    
+    auto state = parameters.copyState();
+    
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
+    
+    DBG( "Finished get state" );
 }
 
 void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+    {
+        if (xmlState->hasTagName (parameters.state.getType()))
+        {
+            parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
+            nEnvPointsParameter.referTo( parameters.state.getPropertyAsValue( "nEnvPoints", nullptr ) );
+//            envelopeParameter = *parameters.getRawParameterValue("envelope");
+            for ( int i = 0; i < (int)nEnvPointsParameter.getValue(); i++ )
+            {
+                envelopeParameter[ i ][ 0 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"x", nullptr ) );
+                envelopeParameter[ i ][ 1 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"y", nullptr ) );
+            }
+        }
+    }
 }
 
 
@@ -229,6 +262,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Sjf_convoAudioProcessor::cre
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "start", pIDVersionNumber }, "Start", 0, 1, 0 ) );
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "end", pIDVersionNumber }, "End", 0, 1, 1 ) );
     
+    params.add( std::make_unique<juce::AudioParameterBool>( juce::ParameterID{ "reverse", pIDVersionNumber }, "Reverse", false ) );
     return params;
 }
 
