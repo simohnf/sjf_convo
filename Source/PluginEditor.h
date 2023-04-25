@@ -18,7 +18,7 @@
 class Sjf_convoAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
-    Sjf_convoAudioProcessorEditor (Sjf_convoAudioProcessor&);
+    Sjf_convoAudioProcessorEditor (Sjf_convoAudioProcessor&, juce::AudioProcessorValueTreeState& vts);
     ~Sjf_convoAudioProcessorEditor() override;
 
     //==============================================================================
@@ -30,11 +30,12 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Sjf_convoAudioProcessor& audioProcessor;
-
+    juce::AudioProcessorValueTreeState& valueTreeState;
+    
     sjf_lookAndFeel otherLookAndFeel;
     
     juce::TextButton loadImpulseButton /*, panicButton*/;
-    juce::ToggleButton reverseImpulseButton, trimImpulseButton;
+    juce::ToggleButton reverseImpulseButton /*, trimImpulseButton*/;
     juce::ComboBox filterPositionBox;
     juce::Slider preDelaySlider, stretchSlider, startAndEndSlider, lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
     
@@ -45,5 +46,11 @@ private:
 
     
     sjf_waveform waveformThumbnail;
+    
+    
+    std::unique_ptr< juce::AudioProcessorValueTreeState::ComboBoxAttachment > filterPositionBoxAttachment;
+    std::unique_ptr< juce::AudioProcessorValueTreeState::ButtonAttachment > reverseImpulseButtonAttachment;
+    std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, stretchSliderAttachment, startAndEndSliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, inputLevelSliderAttachment; 
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessorEditor)
 };

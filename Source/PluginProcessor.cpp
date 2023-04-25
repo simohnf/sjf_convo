@@ -20,11 +20,28 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
+, parameters(*this, nullptr, juce::Identifier("sjf_convo"), createParameterLayout() )
 #endif
 {
 
 
     m_convBuffer.setSize( 2, getBlockSize() );
+    m_convo.trimImpulseEnd( true );
+    
+
+
+
+
+    
+    wetMixParameter = parameters.getRawParameterValue("mix");
+    inputLevelParameter = parameters.getRawParameterValue("inputLevel");
+    filterPositionParamer = parameters.getRawParameterValue("filterPosition");
+    LPFCutoffParameter = parameters.getRawParameterValue("lpfCutoff");;
+    HPFCutoffParameter = parameters.getRawParameterValue("hpfCutoff");
+    stretchParameter = parameters.getRawParameterValue("stretch");
+    preDelayParameter = parameters.getRawParameterValue("preDelay");
+    startParameter = parameters.getRawParameterValue("start");
+    endParameterParameter = parameters.getRawParameterValue("end");
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -176,7 +193,7 @@ bool Sjf_convoAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Sjf_convoAudioProcessor::createEditor()
 {
-    return new Sjf_convoAudioProcessorEditor (*this);
+    return new Sjf_convoAudioProcessorEditor (*this, parameters);
 }
 
 //==============================================================================
@@ -193,9 +210,33 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
     // whose contents will have been created by the getStateInformation() call.
 }
 
+
+//==============================================================================
+juce::AudioProcessorValueTreeState::ParameterLayout Sjf_convoAudioProcessor::createParameterLayout()
+{
+    static constexpr int pIDVersionNumber = 1;
+    juce::AudioProcessorValueTreeState::ParameterLayout params;
+    
+    //    filterOrder
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "inputLevel", pIDVersionNumber }, "inputLevel", -80, 6, 0 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "mix", pIDVersionNumber }, "Mix", 0, 100, 100 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "filterPosition", pIDVersionNumber }, "FilterPosition", 1, 3, 1 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "lpfCutoff", pIDVersionNumber }, "LpfCutoff", 10, 20000, 20000 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "hpfCutoff", pIDVersionNumber }, "HpfCutoff", 10, 20000, 10 ) );
+    
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "stretch", pIDVersionNumber }, "Stretch", -2, 2, 0 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "preDelay", pIDVersionNumber }, "Predelay", 0, 100, 0 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "start", pIDVersionNumber }, "Start", 0, 1, 0 ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "end", pIDVersionNumber }, "End", 0, 1, 1 ) );
+    
+    return params;
+}
+
+
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new Sjf_convoAudioProcessor();
 }
+

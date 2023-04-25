@@ -65,7 +65,6 @@ public:
     void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
     void setAmplitudeEnvelope( std::vector< std::array< float, 2 > > env )
     {
-        DBG("SHOULD SET ENVELOPE");
         m_convo.setAmplitudeEnvelope( env );
     }
     void setStrecthFactor( float stretchFactor )
@@ -94,13 +93,27 @@ public:
     
     juce::AudioBuffer< float >& getIRBuffer(){ return m_convo.getIRBuffer(); }
     double getIRSampleRate() { return m_convo.getIRSampleRate(); }
+    
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 private:
 
+    juce::AudioProcessorValueTreeState parameters;
+    
     sjf_convo< 2, 2048 > m_convo; 
     juce::AudioBuffer< float > m_convBuffer;
     float m_wet = 0, m_inputLevelDB = 0;
     
-//    juce::dsp::Convolution m_conv;
+    
+    
+    std::atomic<float>* wetMixParameter = nullptr;
+    std::atomic<float>* inputLevelParameter = nullptr;
+    std::atomic<float>* filterPositionParamer = nullptr;
+    std::atomic<float>* LPFCutoffParameter = nullptr;
+    std::atomic<float>* HPFCutoffParameter = nullptr;
+    std::atomic<float>* stretchParameter = nullptr;
+    std::atomic<float>* preDelayParameter = nullptr;
+    std::atomic<float>* startParameter = nullptr;
+    std::atomic<float>* endParameterParameter = nullptr;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessor)
 };
