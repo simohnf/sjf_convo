@@ -28,6 +28,8 @@ public:
     void timerCallback() override;
     
 private:
+    
+    void setNonAutomatableValues();
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Sjf_convoAudioProcessor& audioProcessor;
@@ -54,5 +56,6 @@ private:
     std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, /*stretchSliderAttachment,*/ inputLevelSliderAttachment;
 //    std::unique_ptr< TwoValueSliderAttachment > startAndEndSliderAttachment;
     
+    bool m_justRestoreGUIFlag = true;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessorEditor)
 };

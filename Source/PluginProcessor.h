@@ -61,17 +61,17 @@ public:
     void loadImpulse(){ m_convo.loadImpulse(); }
     void PANIC(){ m_convo.PANIC(); }
     void reverseImpulse( bool shouldReverseImpulse ){ m_convo.reverseImpulse( shouldReverseImpulse ); }
-    bool getReverseState() { m_convo.getReverseState(); }
+    bool getReverseState() { return m_convo.getReverseState(); }
     void trimImpulseEnd( bool shouldTrimImpulse ){ m_convo.trimImpulseEnd( shouldTrimImpulse ); }
     
     void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
     std::array< float, 2 > getStartAndEnd(){ return m_convo.getImpulseStartAndEnd(); }
-    void setAmplitudeEnvelope( std::vector< std::array< float, 2 > > env )
-    { m_convo.setAmplitudeEnvelope( env ); }
     
-    void setStrecthFactor( float stretchFactor )
-    { m_convo.setStrecthFactor( std::pow( 2.0f, stretchFactor ) ); }
+    void setAmplitudeEnvelope( std::vector< std::array< float, 2 > > env ) { m_convo.setAmplitudeEnvelope( env ); }
+    std::vector< std::array< float, 2 > > getAmplitudeEnvelope(){ return m_convo.getAmplitudeEnvelope(); }
     
+    void setStretchFactor( float stretchFactor ) { m_convo.setStretchFactor( std::pow( 2.0f, stretchFactor ) ); }
+    float getStretchFactor(){ return std::log2( m_convo.getStretchFactor() ); } 
     
     void setFilterPosition( int filterPosition ){ m_convo.setFilterPosition( filterPosition ); }
     void setLPFCutoff( float f )
@@ -94,6 +94,10 @@ public:
     juce::AudioBuffer< float >& getIRBuffer(){ return m_convo.getIRBuffer(); }
     double getIRSampleRate() { return m_convo.getIRSampleRate(); }
     
+    void setNonAutomatableParameterValues();
+    
+    bool stateReloaded(){ return m_stateReloadedFlag; }
+    void setStateReloaded( bool setToFalseIfTheStateWasReloaded ){ m_stateReloadedFlag = setToFalseIfTheStateWasReloaded; }
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 private:
 
@@ -117,8 +121,10 @@ private:
 //    std::atomic<float>* endParameterParameter = nullptr;
 //    std::atomic<float>* reverseParameter = nullptr;
     
-    juce::Value nEnvPointsParameter, stretchParameter, endParameterParameter, reverseParameter;
+    juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter;
     std::vector< std::array< juce::Value, 2 > > envelopeParameter;
+    
+    bool m_stateReloadedFlag = false;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessor)
 };

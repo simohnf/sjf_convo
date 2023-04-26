@@ -28,21 +28,13 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
     m_convBuffer.setSize( 2, getBlockSize() );
     m_convo.trimImpulseEnd( true );
     
-
-
-
-
-    
+//    setNonAutomatableParameterValues();
     wetMixParameter = parameters.getRawParameterValue("mix");
     inputLevelParameter = parameters.getRawParameterValue("inputLevel");
     filterOnOffParameter = parameters.getRawParameterValue("filterOnOff");
     LPFCutoffParameter = parameters.getRawParameterValue("lpfCutoff");;
     HPFCutoffParameter = parameters.getRawParameterValue("hpfCutoff");
     preDelayParameter = parameters.getRawParameterValue("preDelay");
-    //    stretchParameter = parameters.getRawParameterValue("stretch");
-//    startParameter = parameters.getRawParameterValue("start");
-//    endParameterParameter = parameters.getRawParameterValue("end");
-//    reverseParameter = parameters.getRawParameterValue("reverse");
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -209,16 +201,8 @@ void Sjf_convoAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     
-    auto envPoints = m_convo.getAmplitudeEnvelope();
-    auto nPoints = envPoints.size();
-    nEnvPointsParameter.setValue( (int)nPoints );
-    envelopeParameter.resize( nPoints );
-    for ( int i = 0; i < nPoints; i++ )
-    {
-        envelopeParameter[ i ][ 0 ].setValue( envPoints[ i ][ 0 ] );
-        envelopeParameter[ i ][ 1 ].setValue( envPoints[ i ][ 1 ] );
-    }
-    
+
+    setNonAutomatableParameterValues();
     auto state = parameters.copyState();
     
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
@@ -237,9 +221,16 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
         if (xmlState->hasTagName (parameters.state.getType()))
         {
             parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
+            stretchParameter.referTo( parameters.state.getPropertyAsValue( "stretch", nullptr ) );
+            setStretchFactor( stretchParameter.getValue() );
+            startParameter.referTo( parameters.state.getPropertyAsValue( "start", nullptr ) );
+            endParameter.referTo( parameters.state.getPropertyAsValue( "end", nullptr ) );
+            setImpulseStartAndEnd( startParameter.getValue(), endParameter.getValue() );
+            reverseParameter.referTo( parameters.state.getPropertyAsValue( "reverse", nullptr ) );
+            reverseImpulse( reverseParameter.getValue() );
             nEnvPointsParameter.referTo( parameters.state.getPropertyAsValue( "nEnvPoints", nullptr ) );
 //            envelopeParameter = *parameters.getRawParameterValue("envelope");
-            if ( envelopeParameter.size() > 1 )
+            if ( envelopeParameter.size() >= (int)nEnvPointsParameter.getValue() )
             {
                 for ( int i = 0; i < (int)nEnvPointsParameter.getValue(); i++ )
                 {
@@ -249,6 +240,8 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
             }
         }
     }
+    m_stateReloadedFlag = true;
+     DBG( "Finished set state" );
 }
 
 
@@ -265,15 +258,27 @@ juce::AudioProcessorValueTreeState::ParameterLayout Sjf_convoAudioProcessor::cre
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "lpfCutoff", pIDVersionNumber }, "LpfCutoff", 10, 20000, 20000 ) );
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "hpfCutoff", pIDVersionNumber }, "HpfCutoff", 10, 20000, 10 ) );
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "preDelay", pIDVersionNumber }, "Predelay", 0, 100, 0 ) );
-//    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "stretch", pIDVersionNumber }, "Stretch", -2, 2, 0 ) );
-    
-//    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "start", pIDVersionNumber }, "Start", 0, 1, 0 ) );
-//    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "end", pIDVersionNumber }, "End", 0, 1, 1 ) );
-    
-//    params.add( std::make_unique<juce::AudioParameterBool>( juce::ParameterID{ "reverse", pIDVersionNumber }, "Reverse", false ) );
     return params;
 }
-
+//==============================================================================
+void Sjf_convoAudioProcessor::setNonAutomatableParameterValues()
+{
+    stretchParameter.setValue( (float)getStretchFactor() );
+    auto startEnd = getStartAndEnd();
+    startParameter.setValue( (float)startEnd[ 0 ] );
+    endParameter.setValue( startEnd[ 1 ] );
+    reverseParameter.setValue( getReverseState() );
+    
+    auto envPoints = getAmplitudeEnvelope();
+    auto nPoints = envPoints.size();
+    nEnvPointsParameter.setValue( (int)nPoints );
+    envelopeParameter.resize( nPoints );
+    for ( int i = 0; i < nPoints; i++ )
+    {
+        envelopeParameter[ i ][ 0 ].setValue( envPoints[ i ][ 0 ] );
+        envelopeParameter[ i ][ 1 ].setValue( envPoints[ i ][ 1 ] );
+    }
+}
 
 //==============================================================================
 // This creates new instances of the plugin..
