@@ -61,17 +61,17 @@ public:
     void loadImpulse(){ m_convo.loadImpulse(); }
     void PANIC(){ m_convo.PANIC(); }
     void reverseImpulse( bool shouldReverseImpulse ){ m_convo.reverseImpulse( shouldReverseImpulse ); }
+    bool getReverseState() { m_convo.getReverseState(); }
     void trimImpulseEnd( bool shouldTrimImpulse ){ m_convo.trimImpulseEnd( shouldTrimImpulse ); }
+    
     void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
+    std::array< float, 2 > getStartAndEnd(){ return m_convo.getImpulseStartAndEnd(); }
     void setAmplitudeEnvelope( std::vector< std::array< float, 2 > > env )
-    {
-        m_convo.setAmplitudeEnvelope( env );
-    }
+    { m_convo.setAmplitudeEnvelope( env ); }
+    
     void setStrecthFactor( float stretchFactor )
-    {
-        stretchFactor = std::pow( 2.0f, stretchFactor );
-        m_convo.setStrecthFactor( stretchFactor );
-    }
+    { m_convo.setStrecthFactor( std::pow( 2.0f, stretchFactor ) ); }
+    
     
     void setFilterPosition( int filterPosition ){ m_convo.setFilterPosition( filterPosition ); }
     void setLPFCutoff( float f )
@@ -107,16 +107,17 @@ private:
     
     std::atomic<float>* wetMixParameter = nullptr;
     std::atomic<float>* inputLevelParameter = nullptr;
-    std::atomic<float>* filterPositionParamer = nullptr;
+    std::atomic<float>* filterOnOffParameter = nullptr;
     std::atomic<float>* LPFCutoffParameter = nullptr;
     std::atomic<float>* HPFCutoffParameter = nullptr;
-    std::atomic<float>* stretchParameter = nullptr;
     std::atomic<float>* preDelayParameter = nullptr;
-    std::atomic<float>* startParameter = nullptr;
-    std::atomic<float>* endParameterParameter = nullptr;
-    std::atomic<float>* reverseParameter = nullptr;
     
-    juce::Value nEnvPointsParameter;
+//    std::atomic<float>* stretchParameter = nullptr;
+//    std::atomic<float>* startParameter = nullptr;
+//    std::atomic<float>* endParameterParameter = nullptr;
+//    std::atomic<float>* reverseParameter = nullptr;
+    
+    juce::Value nEnvPointsParameter, stretchParameter, endParameterParameter, reverseParameter;
     std::vector< std::array< juce::Value, 2 > > envelopeParameter;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessor)

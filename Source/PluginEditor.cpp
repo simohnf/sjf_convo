@@ -34,7 +34,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &reverseImpulseButton );
     reverseImpulseButton.setButtonText( "Reverse" );
-    reverseImpulseButtonAttachment.reset( new juce::AudioProcessorValueTreeState::ButtonAttachment ( valueTreeState, "reverse", reverseImpulseButton ) );
+//    reverseImpulseButtonAttachment.reset( new juce::AudioProcessorValueTreeState::ButtonAttachment ( valueTreeState, "reverse", reverseImpulseButton ) );
+    reverseImpulseButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
     reverseImpulseButton.onClick = [this]
     {
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
@@ -67,15 +68,15 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     preDelaySliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "preDelay", preDelaySlider )  );
     preDelaySlider.setSliderStyle( juce::Slider::Rotary );
     preDelaySlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
-    preDelaySlider.onValueChange = [this]
-    {
-        audioProcessor.setPreDelay( preDelaySlider.getValue() );
-    };
+//    preDelaySlider.onValueChange = [this]
+//    {
+//        audioProcessor.setPreDelay( preDelaySlider.getValue() );
+//    };
     preDelaySlider.setTooltip( "This sets the delay applied to the input signal before it is passed through the convolution algorithm" );
     
     addAndMakeVisible( &stretchSlider );
-//    stretchSlider.setRange( -2 , 2 );
-    stretchSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "stretch", stretchSlider )  );
+    stretchSlider.setRange( -2 , 2 );
+//    stretchSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "stretch", stretchSlider )  );
     stretchSlider.setSliderStyle( juce::Slider::Rotary );
     stretchSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
     stretchSlider.onValueChange = [this]
@@ -89,15 +90,14 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     startAndEndSlider.setRange( 0 , 1 );
 //    startAndEndSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "stretch", stretchSlider )  );
     startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
-    startAndEndSliderAttachment.reset( new TwoValueSliderAttachment( valueTreeState, "start", "end", startAndEndSlider ) );
+//    startAndEndSliderAttachment.reset( new TwoValueSliderAttachment( valueTreeState, "start", "end", startAndEndSlider ) );
     startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
-    startAndEndSlider.setMinValue( 0 );
-    startAndEndSlider.setMaxValue( 1 );
+    auto startEnd = audioProcessor.getStartAndEnd();
+    startAndEndSlider.setMinValue( startEnd[0] );
+    startAndEndSlider.setMaxValue( startEnd[1] );
     startAndEndSlider.onValueChange = [this]
     {
-        DBG( startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue() );
         audioProcessor.setImpulseStartAndEnd( startAndEndSlider.getMinValue(), startAndEndSlider.getMaxValue() );
-//        audioProcessor.setStrecthFactor( stretchSlider.getValue() );
     };
     startAndEndSlider.setTooltip( "This allows you to manually trim the beginning or the end of the impulse response" );
     
@@ -109,11 +109,11 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     lpfCutoffSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "lpfCutoff", lpfCutoffSlider )  );
     lpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
     lpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
-    lpfCutoffSlider.onValueChange = [this]
-    {
-        audioProcessor.setLPFCutoff( lpfCutoffSlider.getValue() );
-        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-    };
+//    lpfCutoffSlider.onValueChange = [this]
+//    {
+//        audioProcessor.setLPFCutoff( lpfCutoffSlider.getValue() );
+//        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//    };
     lpfCutoffSlider.setTooltip( "This sets the low pass filter cutoff frequency" );
     
     addAndMakeVisible( &hpfCutoffSlider );
@@ -122,24 +122,26 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     hpfCutoffSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "hpfCutoff", hpfCutoffSlider )  );
     hpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
     hpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
-    hpfCutoffSlider.onValueChange = [this]
-    {
-        audioProcessor.setHPFCutoff( hpfCutoffSlider.getValue() );
-        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-    };
+//    hpfCutoffSlider.onValueChange = [this]
+//    {
+//        audioProcessor.setHPFCutoff( hpfCutoffSlider.getValue() );
+//        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//    };
     hpfCutoffSlider.setTooltip( "This sets the high pass filter cutoff frequency" );
     
-    addAndMakeVisible( &filterPositionBox );
-    filterPositionBox.addItem( "Off", 1 );
-    filterPositionBox.addItem( "IR", 2 );
-    filterPositionBox.addItem( "Output", 3 );
-    filterPositionBox.setSelectedId( 1 );
-    filterPositionBox.onChange = [this]
-    {
-        audioProcessor.setFilterPosition( filterPositionBox.getSelectedId() );
-        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
-    };
-    filterPositionBox.setTooltip( "This allows you to set the position of the two filter. \nOff turns off both filters, IR filters the impulse response itself, Output places the filter after the convolution engine filtering the output of the algorithm " );
+    addAndMakeVisible( &filterOnOffButton );
+    filterOnOffButton.setButtonText( "Filter" );
+//    filterPositionBox.addItem( "Off", 1 );
+//    filterPositionBox.addItem( "IR", 2 );
+//    filterPositionBox.addItem( "Output", 3 );
+//    filterPositionBox.setSelectedId( 1 );
+//    filterPositionBox.onChange = [this]
+//    {
+//        audioProcessor.setFilterPosition( filterPositionBox.getSelectedId() );
+//        waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+//    };
+    filterOnOffButtonAttachment.reset( new juce::AudioProcessorValueTreeState::ButtonAttachment ( valueTreeState, "filterOnOff", filterOnOffButton ));
+    filterOnOffButton.setTooltip( "This turns on/off the two filters" );
     
     addAndMakeVisible( &waveformThumbnail );
 //    waveformThumbnail.setNormaliseFlag( true );
@@ -150,6 +152,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
         audioProcessor.setAmplitudeEnvelope( waveformThumbnail.getEnvelope() );
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
+    waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     waveformThumbnail.setTooltip( "This displays the impulse response currently in use. \nIt also allows you to create an amplitude envelope which is applied to the impulse. To create new breakpoints in the envelope hold shift and click the, to delete a breakpoint hold alt and click the breakpoint." );
     
     
@@ -158,10 +161,10 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     dryWetSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "mix", dryWetSlider )  );
     dryWetSlider.setSliderStyle( juce::Slider::Rotary );
     dryWetSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
-    dryWetSlider.onValueChange = [this]
-    {
-        audioProcessor.setDryWet( dryWetSlider.getValue() );
-    };
+//    dryWetSlider.onValueChange = [this]
+//    {
+//        audioProcessor.setDryWet( dryWetSlider.getValue() );
+//    };
     dryWetSlider.setTooltip( "This sets the percentage of the wet signal sent to the output" );
     
     //     , , , inputLevelSliderAttachment;
@@ -171,10 +174,10 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     inputLevelSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "inputLevel", inputLevelSlider )  );
     inputLevelSlider.setSliderStyle( juce::Slider::Rotary );
     inputLevelSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
-    inputLevelSlider.onValueChange = [this]
-    {
-        audioProcessor.setInputLevelDB( inputLevelSlider.getValue() );
-    };
+//    inputLevelSlider.onValueChange = [this]
+//    {
+//        audioProcessor.setInputLevelDB( inputLevelSlider.getValue() );
+//    };
     inputLevelSlider.setTooltip( "This sets the level of the input signal before it gets passed through the convolution algorithm" );
     
     addAndMakeVisible( &tooltipsToggle );
@@ -258,7 +261,7 @@ void Sjf_convoAudioProcessorEditor::resized()
     
     lpfCutoffSlider.setBounds( waveformThumbnail.getRight() + INDENT, waveformThumbnail.getY() + TEXT_HEIGHT, SLIDER_SIZE, SLIDER_SIZE );
     hpfCutoffSlider.setBounds( lpfCutoffSlider.getX(), lpfCutoffSlider.getBottom() + TEXT_HEIGHT, SLIDER_SIZE, SLIDER_SIZE );
-    filterPositionBox.setBounds( hpfCutoffSlider.getX(), hpfCutoffSlider.getBottom() + INDENT, SLIDER_SIZE, TEXT_HEIGHT );
+    filterOnOffButton.setBounds( hpfCutoffSlider.getX(), hpfCutoffSlider.getBottom() + INDENT, SLIDER_SIZE, TEXT_HEIGHT );
     
     dryWetSlider.setBounds( lpfCutoffSlider.getRight() + INDENT, lpfCutoffSlider.getY() + TEXT_HEIGHT, SLIDER_SIZE, SLIDER_SIZE );
     
