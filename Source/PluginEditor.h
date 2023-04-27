@@ -40,8 +40,8 @@ private:
     juce::TextButton loadImpulseButton /*, panicButton*/;
     juce::ToggleButton filterOnOffButton, reverseImpulseButton /*, trimImpulseButton*/;
 //    juce::ComboBox filterPositionBox;
-    juce::Slider preDelaySlider, stretchSlider, startAndEndSlider, lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
-    
+    juce::Slider preDelaySlider, stretchSlider, /*startAndEndSlider,*/ lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
+    sjf_twoValSlider startAndEndSlider;
     juce::ToggleButton tooltipsToggle;
     
     juce::Label tooltipLabel;

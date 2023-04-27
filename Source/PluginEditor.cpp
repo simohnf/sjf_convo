@@ -41,12 +41,14 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
         DBG("DO REVERSE STUFF");
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
         waveformThumbnail.reverseEnvelope();
-        auto max = startAndEndSlider.getMaxValue();
-        auto min = startAndEndSlider.getMinValue();
+        auto minMax = startAndEndSlider.getMinAndMaxValues();
+        auto min = minMax[ 0 ];
+        auto max = minMax[ 1 ];
         auto dif = max - min;
         min = 1.0f - max;
         max = min + dif;
         startAndEndSlider.setMinAndMaxValues( min, max );
+        startAndEndSlider.onMouseEvent();
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
     reverseImpulseButton.setTooltip( "This will reverse the impulse response and any start/end or envelope settings" );
@@ -74,14 +76,16 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &startAndEndSlider ); 
     startAndEndSlider.setRange( 0 , 1 );
-    startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
+    startAndEndSlider.setHorizontal( true );
+//    startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
     startAndEndSlider.setMinAndMaxValues( audioProcessor.getStartAndEnd()[ 0 ], audioProcessor.getStartAndEnd()[ 1 ] );
-    startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
-    startAndEndSlider.onValueChange = [this]
+//    startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    startAndEndSlider.onMouseEvent = [this]
     {
         if (m_justRestoreGUIFlag){ DBG("DONT SET START END");return; }
-        DBG("Set START/END FROM SLIDER CHANGE" << startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue());
-        audioProcessor.setImpulseStartAndEnd( startAndEndSlider.getMinValue(), startAndEndSlider.getMaxValue() );
+//        DBG("Set START/END FROM SLIDER CHANGE" << startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue());
+        auto minMax = startAndEndSlider.getMinAndMaxValues();
+        audioProcessor.setImpulseStartAndEnd( minMax[ 0 ], minMax[ 1 ] );
     };
     startAndEndSlider.setTooltip( "This allows you to manually trim the beginning or the end of the impulse response" );
     
