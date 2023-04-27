@@ -35,6 +35,19 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
     LPFCutoffParameter = parameters.getRawParameterValue("lpfCutoff");;
     HPFCutoffParameter = parameters.getRawParameterValue("hpfCutoff");
     preDelayParameter = parameters.getRawParameterValue("preDelay");
+//    parameters.state.getPropertyAsValue
+    filePathParameter = parameters.state.getPropertyAsValue( "filepath", nullptr, true);
+    stretchParameter = parameters.state.getPropertyAsValue( "stretch", nullptr, true);
+    startParameter = parameters.state.getPropertyAsValue( "start", nullptr, true);
+    endParameter = parameters.state.getPropertyAsValue( "end", nullptr, true);
+    reverseParameter = parameters.state.getPropertyAsValue( "reverse", nullptr, true);
+    nEnvPointsParameter = parameters.state.getPropertyAsValue( "nEnvPoints", nullptr, true);
+    envelopeParameter.resize( (int)nEnvPointsParameter.getValue() );
+    for ( int i = 0; i < (int)nEnvPointsParameter.getValue(); i++ )
+    {
+        envelopeParameter[ i ][ 0 ] = parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"x", nullptr, true );
+        envelopeParameter[ i ][ 1 ] = parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"y", nullptr, true );
+    }
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -221,6 +234,12 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
         if (xmlState->hasTagName (parameters.state.getType()))
         {
             parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
+            
+            filePathParameter.referTo( parameters.state.getPropertyAsValue("filepath", nullptr ) );
+            if (filePathParameter != juce::Value{})
+            {
+                m_convo.loadSample( filePathParameter );
+            }
             stretchParameter.referTo( parameters.state.getPropertyAsValue( "stretch", nullptr ) );
             setStretchFactor( stretchParameter.getValue() );
             startParameter.referTo( parameters.state.getPropertyAsValue( "start", nullptr ) );
@@ -230,13 +249,21 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
             reverseImpulse( reverseParameter.getValue() );
             nEnvPointsParameter.referTo( parameters.state.getPropertyAsValue( "nEnvPoints", nullptr ) );
 //            envelopeParameter = *parameters.getRawParameterValue("envelope");
-            if ( envelopeParameter.size() >= (int)nEnvPointsParameter.getValue() )
+            auto nPoints = (int)nEnvPointsParameter.getValue();
+            envelopeParameter.resize( nPoints );
+            if ( envelopeParameter.size() >= nPoints )
             {
-                for ( int i = 0; i < (int)nEnvPointsParameter.getValue(); i++ )
+                std::vector< std::array < float, 2 > > env;
+                env.resize( nPoints );
+                for ( int i = 0; i < nPoints; i++ )
                 {
                     envelopeParameter[ i ][ 0 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"x", nullptr ) );
                     envelopeParameter[ i ][ 1 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"y", nullptr ) );
+                    
+                    env[ i ][ 0 ] = envelopeParameter[ i ][ 0 ].getValue();
+                    env[ i ][ 1 ] = envelopeParameter[ i ][ 1 ].getValue();
                 }
+                m_convo.setAmplitudeEnvelope( env );
             }
         }
     }
@@ -263,6 +290,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Sjf_convoAudioProcessor::cre
 //==============================================================================
 void Sjf_convoAudioProcessor::setNonAutomatableParameterValues()
 {
+    filePathParameter.setValue( m_convo.getFilePath() );
     stretchParameter.setValue( (float)getStretchFactor() );
     auto startEnd = getStartAndEnd();
     startParameter.setValue( (float)startEnd[ 0 ] );

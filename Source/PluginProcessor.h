@@ -99,6 +99,9 @@ public:
     bool stateReloaded(){ return m_stateReloadedFlag; }
     void setStateReloaded( bool setToFalseIfTheStateWasReloaded ){ m_stateReloadedFlag = setToFalseIfTheStateWasReloaded; }
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    
+    
+    juce::String getFilePath(){ return m_convo.getFilePath(); }
 private:
 
     juce::AudioProcessorValueTreeState parameters;
@@ -121,7 +124,7 @@ private:
 //    std::atomic<float>* endParameterParameter = nullptr;
 //    std::atomic<float>* reverseParameter = nullptr;
     
-    juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter;
+    juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter, filePathParameter;
     std::vector< std::array< juce::Value, 2 > > envelopeParameter;
     
     bool m_stateReloadedFlag = false;

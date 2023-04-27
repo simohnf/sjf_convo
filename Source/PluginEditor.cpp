@@ -117,6 +117,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
     waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
+    auto env = audioProcessor.getAmplitudeEnvelope();
+    waveformThumbnail.setEnvelope( env );
     waveformThumbnail.setTooltip( "This displays the impulse response currently in use. \nIt also allows you to create an amplitude envelope which is applied to the impulse. To create new breakpoints in the envelope hold shift and click the, to delete a breakpoint hold alt and click the breakpoint." );
     
     
@@ -191,6 +193,7 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText( "Stretch", stretchSlider.getX(), stretchSlider.getY() - TEXT_HEIGHT, stretchSlider.getWidth(), TEXT_HEIGHT, juce::Justification::centred, 1 );
     
     g.drawFittedText( "Impulse Response", waveformThumbnail.getX(), waveformThumbnail.getY(), waveformThumbnail.getWidth(), waveformThumbnail.getHeight(), juce::Justification::centred, 1 );
+    g.drawFittedText(audioProcessor.getFilePath(), waveformThumbnail.getX(), waveformThumbnail.getBottom() - TEXT_HEIGHT, waveformThumbnail.getWidth(), waveformThumbnail.getHeight(), juce::Justification::centred, 1 );
     g.drawFittedText( "Start and End Points", startAndEndSlider.getX(), startAndEndSlider.getY(), startAndEndSlider.getWidth(), startAndEndSlider.getHeight(), juce::Justification::centred, 1 );
     
     
@@ -247,6 +250,9 @@ void Sjf_convoAudioProcessorEditor::setNonAutomatableValues()
     auto startEnd = audioProcessor.getStartAndEnd();
     DBG( "INTERFACE START " <<  startEnd[ 0 ] << " END " << startEnd[ 1 ] );
     startAndEndSlider.setMinAndMaxValues( startEnd[ 0 ], startEnd[ 1 ] );
+    auto env = audioProcessor.getAmplitudeEnvelope();
+    waveformThumbnail.setEnvelope( env );
+    
     m_justRestoreGUIFlag = false;
 
     
