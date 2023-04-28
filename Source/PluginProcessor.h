@@ -102,6 +102,7 @@ public:
     
     
     juce::String getFilePath(){ return m_convo.getFilePath(); }
+    juce::String getFileName(){ return m_convo.getFileName(); }
 private:
 
     juce::AudioProcessorValueTreeState parameters;
@@ -119,13 +120,9 @@ private:
     std::atomic<float>* HPFCutoffParameter = nullptr;
     std::atomic<float>* preDelayParameter = nullptr;
     
-//    std::atomic<float>* stretchParameter = nullptr;
-//    std::atomic<float>* startParameter = nullptr;
-//    std::atomic<float>* endParameterParameter = nullptr;
-//    std::atomic<float>* reverseParameter = nullptr;
-    
+
     juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter, filePathParameter;
-    std::vector< std::array< juce::Value, 2 > > envelopeParameter;
+    juce::Value envelopeParameterString;
     
     bool m_stateReloadedFlag = false;
     //==============================================================================

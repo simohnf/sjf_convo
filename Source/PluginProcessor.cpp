@@ -42,12 +42,7 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
     endParameter = parameters.state.getPropertyAsValue( "end", nullptr, true);
     reverseParameter = parameters.state.getPropertyAsValue( "reverse", nullptr, true);
     nEnvPointsParameter = parameters.state.getPropertyAsValue( "nEnvPoints", nullptr, true);
-    envelopeParameter.resize( (int)nEnvPointsParameter.getValue() );
-    for ( int i = 0; i < (int)nEnvPointsParameter.getValue(); i++ )
-    {
-        envelopeParameter[ i ][ 0 ] = parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"x", nullptr, true );
-        envelopeParameter[ i ][ 1 ] = parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"y", nullptr, true );
-    }
+    envelopeParameterString = parameters.state.getPropertyAsValue( "envelope", nullptr, true);
 }
 
 Sjf_convoAudioProcessor::~Sjf_convoAudioProcessor()
@@ -186,10 +181,10 @@ void Sjf_convoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
 
     auto wet = std::sqrt( m_wet * 0.01f );
-    auto dry = std::sqrt( 1 - (m_wet * 0.01f) );
+    auto dry = std::sqrt( 1 - (m_wet*0.01f) );
     buffer.applyGain( dry );
     m_convBuffer.applyGain( wet );
-
+    DBG( "dry " << dry << " wet " << wet );
     for ( int c = 0; c < totalNumOutputChannels; c++ )
     {
         buffer.addFrom( c, 0, m_convBuffer, c, 0, bufferSize );
@@ -214,20 +209,21 @@ void Sjf_convoAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     
-
+//    DBG("GET STATE");
     setNonAutomatableParameterValues();
     auto state = parameters.copyState();
     
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
     
-    DBG( "Finished get state" );
+//    DBG( "Finished get state" );
 }
 
 void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+//    DBG("SET STATE");
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
     if (xmlState.get() != nullptr)
     {
@@ -250,25 +246,26 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
             nEnvPointsParameter.referTo( parameters.state.getPropertyAsValue( "nEnvPoints", nullptr ) );
 //            envelopeParameter = *parameters.getRawParameterValue("envelope");
             auto nPoints = (int)nEnvPointsParameter.getValue();
-            envelopeParameter.resize( nPoints );
-            if ( envelopeParameter.size() >= nPoints )
-            {
-                std::vector< std::array < float, 2 > > env;
-                env.resize( nPoints );
-                for ( int i = 0; i < nPoints; i++ )
-                {
-                    envelopeParameter[ i ][ 0 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"x", nullptr ) );
-                    envelopeParameter[ i ][ 1 ].referTo( parameters.state.getPropertyAsValue( "envPoints"+juce::String(i)+"y", nullptr ) );
-                    
-                    env[ i ][ 0 ] = envelopeParameter[ i ][ 0 ].getValue();
-                    env[ i ][ 1 ] = envelopeParameter[ i ][ 1 ].getValue();
-                }
-                m_convo.setAmplitudeEnvelope( env );
+            envelopeParameterString.referTo( parameters.state.getPropertyAsValue( "envelope", nullptr, true) );
+            std::vector< std::array < float, 2 > > env;
+            env.resize( nPoints );
+            juce::String eStr ( envelopeParameterString.getValue() );
+            juce::String delimiter = "_";
+            int indx1 = 0;
+            int indx2 = -1;
+            while (eStr.length() > 1) {
+                int pos = eStr.indexOf(delimiter);
+                indx2 = (indx1 == 0) ? indx2+1 : indx2;
+                env[ indx2 ][ indx1 ] = eStr.substring(0, pos).getFloatValue();
+                indx1 += 1;
+                indx1 %= 2;
+                eStr = eStr.substring( pos+1, eStr.length() );
             }
+            m_convo.setAmplitudeEnvelope( env );
         }
     }
     m_stateReloadedFlag = true;
-     DBG( "Finished set state" );
+//     DBG( "Finished set state" );
 }
 
 
@@ -279,11 +276,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout Sjf_convoAudioProcessor::cre
     juce::AudioProcessorValueTreeState::ParameterLayout params;
     
     //    filterOrder
-    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "inputLevel", pIDVersionNumber }, "inputLevel", -80, 6, 0 ) );
+    juce::NormalisableRange < float > inLevelRange( -80.0f, 6.0f, 0.001f );
+    inLevelRange.setSkewForCentre( -12.0f );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "inputLevel", pIDVersionNumber }, "inputLevel", inLevelRange, -6.0f ) );
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "mix", pIDVersionNumber }, "Mix", 0, 100, 100 ) );
     params.add( std::make_unique<juce::AudioParameterBool>( juce::ParameterID{ "filterOnOff", pIDVersionNumber }, "FilterOnOff", false ) );
-    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "lpfCutoff", pIDVersionNumber }, "LpfCutoff", 10, 20000, 20000 ) );
-    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "hpfCutoff", pIDVersionNumber }, "HpfCutoff", 10, 20000, 10 ) );
+    
+    
+    juce::NormalisableRange < float > cutOffRange( 10.0f, 20000.0f, 0.001f );
+    cutOffRange.setSkewForCentre( 1000.0f );
+
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "lpfCutoff", pIDVersionNumber }, "LpfCutoff", cutOffRange, 20000.0f ) );
+    params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "hpfCutoff", pIDVersionNumber }, "HpfCutoff", cutOffRange, 10.0f ) );
     params.add( std::make_unique<juce::AudioParameterFloat>( juce::ParameterID{ "preDelay", pIDVersionNumber }, "Predelay", 0, 100, 0 ) );
     return params;
 }
@@ -297,15 +301,18 @@ void Sjf_convoAudioProcessor::setNonAutomatableParameterValues()
     endParameter.setValue( startEnd[ 1 ] );
     reverseParameter.setValue( getReverseState() );
     
-    auto envPoints = getAmplitudeEnvelope();
-    auto nPoints = envPoints.size();
+    auto env = getAmplitudeEnvelope();
+    auto nPoints = env.size();
     nEnvPointsParameter.setValue( (int)nPoints );
-    envelopeParameter.resize( nPoints );
+    juce::String envString;
     for ( int i = 0; i < nPoints; i++ )
     {
-        envelopeParameter[ i ][ 0 ].setValue( envPoints[ i ][ 0 ] );
-        envelopeParameter[ i ][ 1 ].setValue( envPoints[ i ][ 1 ] );
+        envString += juce::String(env[ i ][ 0 ]);
+        envString += "_";
+        envString += juce::String(env[ i ][ 1 ]);
+        envString += "_";
     }
+    envelopeParameterString.setValue( envString );
 }
 
 //==============================================================================

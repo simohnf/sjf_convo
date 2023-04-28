@@ -37,8 +37,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     reverseImpulseButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
     reverseImpulseButton.onClick = [this]
     {
-        if (m_justRestoreGUIFlag){ DBG("DONT DO REVERSE STUFF");return; }
-        DBG("DO REVERSE STUFF");
+        if (m_justRestoreGUIFlag){ return; } // ?????
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
         waveformThumbnail.reverseEnvelope();
         auto minMax = startAndEndSlider.getMinAndMaxValues();
@@ -60,10 +59,12 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     preDelaySliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "preDelay", preDelaySlider )  );
     preDelaySlider.setSliderStyle( juce::Slider::Rotary );
     preDelaySlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    preDelaySlider.setTextValueSuffix("ms");
     preDelaySlider.setTooltip( "This sets the delay applied to the input signal before it is passed through the convolution algorithm" );
     
     addAndMakeVisible( &stretchSlider );
     stretchSlider.setRange( -2 , 2 );
+    stretchSlider.setNumDecimalPlacesToDisplay( 3 );
     stretchSlider.setSliderStyle( juce::Slider::Rotary );
     stretchSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
     stretchSlider.setValue( audioProcessor.getStretchFactor() );
@@ -71,19 +72,16 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     {
         audioProcessor.setStretchFactor( stretchSlider.getValue() );
     };
-    stretchSlider.setTooltip("This changes the length of the impulse response. Positive stretching results in an elongated impulse reponse and reduced high frequency content, negative stretching results in a shorter impulse repsonse and increased high frequency content" );
+    stretchSlider.setTooltip("This changes the length of the impulse response. \nPositive stretching results in an elongated impulse reponse and reduced high frequency content, negative stretching results in a shorter impulse repsonse and increased high frequency content" );
     
     
     addAndMakeVisible( &startAndEndSlider ); 
     startAndEndSlider.setRange( 0 , 1 );
     startAndEndSlider.setHorizontal( true );
-//    startAndEndSlider.setSliderStyle( juce::Slider::TwoValueHorizontal );
     startAndEndSlider.setMinAndMaxValues( audioProcessor.getStartAndEnd()[ 0 ], audioProcessor.getStartAndEnd()[ 1 ] );
-//    startAndEndSlider.setTextBoxStyle( juce::Slider::NoTextBox, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
     startAndEndSlider.onMouseEvent = [this]
     {
-        if (m_justRestoreGUIFlag){ DBG("DONT SET START END");return; }
-//        DBG("Set START/END FROM SLIDER CHANGE" << startAndEndSlider.getMinValue() << " " << startAndEndSlider.getMaxValue());
+        if (m_justRestoreGUIFlag){ return; } /// ?????
         auto minMax = startAndEndSlider.getMinAndMaxValues();
         audioProcessor.setImpulseStartAndEnd( minMax[ 0 ], minMax[ 1 ] );
     };
@@ -95,12 +93,14 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     lpfCutoffSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "lpfCutoff", lpfCutoffSlider )  );
     lpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
     lpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    lpfCutoffSlider.setTextValueSuffix("Hz");
     lpfCutoffSlider.setTooltip( "This sets the low pass filter cutoff frequency" );
     
     addAndMakeVisible( &hpfCutoffSlider );
     hpfCutoffSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "hpfCutoff", hpfCutoffSlider )  );
     hpfCutoffSlider.setSliderStyle( juce::Slider::Rotary );
     hpfCutoffSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, preDelaySlider.getWidth(), TEXT_HEIGHT );
+    hpfCutoffSlider.setTextValueSuffix("Hz");
     hpfCutoffSlider.setTooltip( "This sets the high pass filter cutoff frequency" );
     
     addAndMakeVisible( &filterOnOffButton );
@@ -119,20 +119,28 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     auto env = audioProcessor.getAmplitudeEnvelope();
     waveformThumbnail.setEnvelope( env );
-    waveformThumbnail.setTooltip( "This displays the impulse response currently in use. \nIt also allows you to create an amplitude envelope which is applied to the impulse. To create new breakpoints in the envelope hold shift and click the, to delete a breakpoint hold alt and click the breakpoint." );
+    waveformThumbnail.setTooltip( "This displays the impulse response currently in use. \nIt also allows you to create an amplitude envelope which is applied to the impulse. \nTo create new breakpoints in the envelope hold shift and click, to delete a breakpoint hold alt and click the breakpoint." );
     
+    addAndMakeVisible( &fileNameLabel );
+    fileNameLabel.setColour( juce::Label::backgroundColourId, juce::Colours::white.withAlpha(0.0f) );
+    fileNameLabel.setColour( juce::Label::textColourId, juce::Colours::white.withAlpha(0.3f) );
+    fileNameLabel.setJustificationType( juce::Justification::centred );
+    fileNameLabel.setTooltip( "This displays the impulse response currently in use. \nIt also allows you to create an amplitude envelope which is applied to the impulse. \nTo create new breakpoints in the envelope hold shift and click the, to delete a breakpoint hold alt and click the breakpoint." );
+    fileNameLabel.setInterceptsMouseClicks(false, false);
     
     addAndMakeVisible( &dryWetSlider );
     dryWetSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "mix", dryWetSlider )  );
     dryWetSlider.setSliderStyle( juce::Slider::Rotary );
     dryWetSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
+    dryWetSlider.setTextValueSuffix("%");
     dryWetSlider.setTooltip( "This sets the percentage of the wet signal sent to the output" );
     
 
     addAndMakeVisible( &inputLevelSlider );
     inputLevelSliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "inputLevel", inputLevelSlider )  );
     inputLevelSlider.setSliderStyle( juce::Slider::Rotary );
-    inputLevelSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, dryWetSlider.getWidth(), TEXT_HEIGHT );
+    inputLevelSlider.setTextBoxStyle( juce::Slider::TextBoxBelow, false, inputLevelSlider.getWidth(), TEXT_HEIGHT );
+    inputLevelSlider.setTextValueSuffix("dB");
     inputLevelSlider.setTooltip( "This sets the level of the input signal before it gets passed through the convolution algorithm" );
     
     addAndMakeVisible( &tooltipsToggle );
@@ -164,7 +172,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     m_justRestoreGUIFlag = false;
     startTimer( 200 );
     
-    DBG("INTERFACE CREATED");
+//    DBG("INTERFACE CREATED");
 }
 
 Sjf_convoAudioProcessorEditor::~Sjf_convoAudioProcessorEditor()
@@ -193,7 +201,6 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText( "Stretch", stretchSlider.getX(), stretchSlider.getY() - TEXT_HEIGHT, stretchSlider.getWidth(), TEXT_HEIGHT, juce::Justification::centred, 1 );
     
     g.drawFittedText( "Impulse Response", waveformThumbnail.getX(), waveformThumbnail.getY(), waveformThumbnail.getWidth(), waveformThumbnail.getHeight(), juce::Justification::centred, 1 );
-    g.drawFittedText(audioProcessor.getFilePath(), waveformThumbnail.getX(), waveformThumbnail.getBottom() - TEXT_HEIGHT, waveformThumbnail.getWidth(), waveformThumbnail.getHeight(), juce::Justification::centred, 1 );
     g.drawFittedText( "Start and End Points", startAndEndSlider.getX(), startAndEndSlider.getY(), startAndEndSlider.getWidth(), startAndEndSlider.getHeight(), juce::Justification::centred, 1 );
     
     
@@ -214,6 +221,7 @@ void Sjf_convoAudioProcessorEditor::resized()
     stretchSlider.setBounds( preDelaySlider.getX(), preDelaySlider.getBottom() + TEXT_HEIGHT + INDENT, SLIDER_SIZE, SLIDER_SIZE );
     
     waveformThumbnail.setBounds(preDelaySlider.getRight() + INDENT, TEXT_HEIGHT, SLIDER_SIZE*4, SLIDER_SIZE*2 + INDENT*3 + TEXT_HEIGHT );
+    fileNameLabel.setBounds(waveformThumbnail.getX(), waveformThumbnail.getBottom()-TEXT_HEIGHT, waveformThumbnail.getWidth(), TEXT_HEIGHT );
     startAndEndSlider.setBounds( waveformThumbnail.getX(), waveformThumbnail.getBottom(), waveformThumbnail.getWidth(), TEXT_HEIGHT );
 
     
@@ -238,6 +246,7 @@ void Sjf_convoAudioProcessorEditor::timerCallback()
         audioProcessor.setStateReloaded( false );
         setNonAutomatableValues();
     }
+    fileNameLabel.setText( audioProcessor.getFileName(), juce::dontSendNotification );
     sjf_setTooltipLabel( this, MAIN_TOOLTIP, tooltipLabel );
 }
 
@@ -248,11 +257,9 @@ void Sjf_convoAudioProcessorEditor::setNonAutomatableValues()
     stretchSlider.setValue( audioProcessor.getStretchFactor() );
     
     auto startEnd = audioProcessor.getStartAndEnd();
-    DBG( "INTERFACE START " <<  startEnd[ 0 ] << " END " << startEnd[ 1 ] );
     startAndEndSlider.setMinAndMaxValues( startEnd[ 0 ], startEnd[ 1 ] );
     auto env = audioProcessor.getAmplitudeEnvelope();
     waveformThumbnail.setEnvelope( env );
-    
     m_justRestoreGUIFlag = false;
 
     
