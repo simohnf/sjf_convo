@@ -37,10 +37,9 @@ private:
     
     sjf_lookAndFeel otherLookAndFeel;
     
-    juce::TextButton loadImpulseButton /*, panicButton*/;
-    juce::ToggleButton filterOnOffButton, reverseImpulseButton /*, trimImpulseButton*/;
-//    juce::ComboBox filterPositionBox;
-    juce::Slider preDelaySlider, stretchSlider, /*startAndEndSlider,*/ lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
+    juce::TextButton loadImpulseButton;
+    juce::ToggleButton filterOnOffButton, reverseImpulseButton, palindromeButton;
+    juce::Slider preDelaySlider, stretchSlider, lpfCutoffSlider, hpfCutoffSlider, dryWetSlider, inputLevelSlider;
     sjf_twoValSlider startAndEndSlider;
     juce::ToggleButton tooltipsToggle;
     
@@ -51,10 +50,8 @@ private:
     sjf_waveform waveformThumbnail;
     
     
-//    std::unique_ptr< juce::AudioProcessorValueTreeState::ComboBoxAttachment > filterPositionBoxAttachment;
-    std::unique_ptr< juce::AudioProcessorValueTreeState::ButtonAttachment > filterOnOffButtonAttachment /*, reverseImpulseButtonAttachment*/;
-    std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, /*stretchSliderAttachment,*/ inputLevelSliderAttachment;
-//    std::unique_ptr< TwoValueSliderAttachment > startAndEndSliderAttachment;
+    std::unique_ptr< juce::AudioProcessorValueTreeState::ButtonAttachment > filterOnOffButtonAttachment;
+    std::unique_ptr< juce::AudioProcessorValueTreeState::SliderAttachment > preDelaySliderAttachment, lpfCutoffSliderAttachment, hpfCutoffSliderAttachment, dryWetSliderAttachment, inputLevelSliderAttachment;
     
     bool m_justRestoreGUIFlag = true;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sjf_convoAudioProcessorEditor)

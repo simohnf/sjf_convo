@@ -54,6 +54,15 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
 
 
+    addAndMakeVisible( &palindromeButton );
+    palindromeButton.setButtonText( "Palindrome" );
+    palindromeButton.setToggleState( audioProcessor.getPalindromeState(), juce::dontSendNotification );
+    palindromeButton.onClick = [this]
+    {
+        if (m_justRestoreGUIFlag){ return; } // ?????
+        audioProcessor.palindromeImpulse( palindromeButton.getToggleState() );
+    };
+    palindromeButton.setTooltip( "This will copy a reverse version of the trimmed section of the impulse response to the end of the impulse response for use in the convolution");
     
     addAndMakeVisible( &preDelaySlider );
     preDelaySliderAttachment.reset( new juce::AudioProcessorValueTreeState::SliderAttachment ( valueTreeState, "preDelay", preDelaySlider )  );
@@ -212,15 +221,19 @@ void Sjf_convoAudioProcessorEditor::paint (juce::Graphics& g)
 
 void Sjf_convoAudioProcessorEditor::resized()
 {
-    loadImpulseButton.setBounds( INDENT, TEXT_HEIGHT*2, SLIDER_SIZE, SLIDER_SIZE * 0.5 );
+    
+    
+    inputLevelSlider.setBounds( INDENT, TEXT_HEIGHT*2, SLIDER_SIZE, SLIDER_SIZE );
+    preDelaySlider.setBounds( inputLevelSlider.getX(), inputLevelSlider.getBottom() + TEXT_HEIGHT + INDENT, SLIDER_SIZE, SLIDER_SIZE );
+    
+    loadImpulseButton.setBounds( inputLevelSlider.getRight() + INDENT, inputLevelSlider.getY(), SLIDER_SIZE, SLIDER_SIZE/3 );
     reverseImpulseButton.setBounds( loadImpulseButton.getX(), loadImpulseButton.getBottom(), loadImpulseButton.getWidth(), loadImpulseButton.getHeight() );
+    palindromeButton.setBounds( reverseImpulseButton.getX(), reverseImpulseButton.getBottom(), reverseImpulseButton.getWidth(), reverseImpulseButton.getHeight() );
+
+    stretchSlider.setBounds( palindromeButton.getX(), palindromeButton.getBottom() + TEXT_HEIGHT + INDENT, SLIDER_SIZE, SLIDER_SIZE );
     
-    inputLevelSlider.setBounds( reverseImpulseButton.getX(), reverseImpulseButton.getBottom() + TEXT_HEIGHT + INDENT, SLIDER_SIZE, SLIDER_SIZE );
     
-    preDelaySlider.setBounds( loadImpulseButton.getRight() + INDENT, loadImpulseButton.getY(), SLIDER_SIZE, SLIDER_SIZE );
-    stretchSlider.setBounds( preDelaySlider.getX(), preDelaySlider.getBottom() + TEXT_HEIGHT + INDENT, SLIDER_SIZE, SLIDER_SIZE );
-    
-    waveformThumbnail.setBounds(preDelaySlider.getRight() + INDENT, TEXT_HEIGHT, SLIDER_SIZE*4, SLIDER_SIZE*2 + INDENT*3 + TEXT_HEIGHT );
+    waveformThumbnail.setBounds(loadImpulseButton.getRight() + INDENT, TEXT_HEIGHT, SLIDER_SIZE*4, SLIDER_SIZE*2 + INDENT*3 + TEXT_HEIGHT );
     fileNameLabel.setBounds(waveformThumbnail.getX(), waveformThumbnail.getBottom()-TEXT_HEIGHT, waveformThumbnail.getWidth(), TEXT_HEIGHT );
     startAndEndSlider.setBounds( waveformThumbnail.getX(), waveformThumbnail.getBottom(), waveformThumbnail.getWidth(), TEXT_HEIGHT );
 
@@ -229,11 +242,10 @@ void Sjf_convoAudioProcessorEditor::resized()
     hpfCutoffSlider.setBounds( lpfCutoffSlider.getX(), lpfCutoffSlider.getBottom() + TEXT_HEIGHT, SLIDER_SIZE, SLIDER_SIZE );
     filterOnOffButton.setBounds( hpfCutoffSlider.getX(), hpfCutoffSlider.getBottom() + INDENT, SLIDER_SIZE, TEXT_HEIGHT );
     
-    dryWetSlider.setBounds( lpfCutoffSlider.getRight() + INDENT, lpfCutoffSlider.getY() + TEXT_HEIGHT, SLIDER_SIZE, SLIDER_SIZE );
+    dryWetSlider.setBounds( lpfCutoffSlider.getRight() + INDENT, lpfCutoffSlider.getY() + TEXT_HEIGHT*2, SLIDER_SIZE, SLIDER_SIZE );
     
     
     tooltipsToggle.setBounds( dryWetSlider.getX(), dryWetSlider.getBottom() + INDENT, dryWetSlider.getWidth(), TEXT_HEIGHT );
-    
     tooltipLabel.setBounds( 0, HEIGHT, WIDTH, TEXT_HEIGHT*4);
 }
 
@@ -254,6 +266,7 @@ void Sjf_convoAudioProcessorEditor::setNonAutomatableValues()
 {
     m_justRestoreGUIFlag = true;
     reverseImpulseButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
+    palindromeButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
     stretchSlider.setValue( audioProcessor.getStretchFactor() );
     
     auto startEnd = audioProcessor.getStartAndEnd();

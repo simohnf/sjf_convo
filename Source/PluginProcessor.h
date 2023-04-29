@@ -62,6 +62,8 @@ public:
     void PANIC(){ m_convo.PANIC(); }
     void reverseImpulse( bool shouldReverseImpulse ){ m_convo.reverseImpulse( shouldReverseImpulse ); }
     bool getReverseState() { return m_convo.getReverseState(); }
+    void palindromeImpulse( bool shouldMakePalindromeOfImpulse ){ m_convo.palindromeImpulse( shouldMakePalindromeOfImpulse ); }
+    bool getPalindromeState(){ return m_convo.getPalindromeState(); }
     void trimImpulseEnd( bool shouldTrimImpulse ){ m_convo.trimImpulseEnd( shouldTrimImpulse ); }
     
     void setImpulseStartAndEnd( float start0to1, float end0to1 ){ m_convo.setImpulseStartAndEnd( start0to1, end0to1 ); }
@@ -121,7 +123,7 @@ private:
     std::atomic<float>* preDelayParameter = nullptr;
     
 
-    juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter, filePathParameter;
+    juce::Value nEnvPointsParameter, stretchParameter, startParameter, endParameter, reverseParameter, palindromeParameter, filePathParameter;
     juce::Value envelopeParameterString;
     
     bool m_stateReloadedFlag = false;

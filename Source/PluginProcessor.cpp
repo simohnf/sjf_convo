@@ -41,6 +41,7 @@ Sjf_convoAudioProcessor::Sjf_convoAudioProcessor()
     startParameter = parameters.state.getPropertyAsValue( "start", nullptr, true);
     endParameter = parameters.state.getPropertyAsValue( "end", nullptr, true);
     reverseParameter = parameters.state.getPropertyAsValue( "reverse", nullptr, true);
+    palindromeParameter = parameters.state.getPropertyAsValue( "palindrome", nullptr, true);
     nEnvPointsParameter = parameters.state.getPropertyAsValue( "nEnvPoints", nullptr, true);
     envelopeParameterString = parameters.state.getPropertyAsValue( "envelope", nullptr, true);
 }
@@ -154,7 +155,7 @@ void Sjf_convoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels(); 
     auto bufferSize = buffer.getNumSamples();
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -243,6 +244,8 @@ void Sjf_convoAudioProcessor::setStateInformation (const void* data, int sizeInB
             setImpulseStartAndEnd( startParameter.getValue(), endParameter.getValue() );
             reverseParameter.referTo( parameters.state.getPropertyAsValue( "reverse", nullptr ) );
             reverseImpulse( reverseParameter.getValue() );
+            palindromeParameter.referTo( parameters.state.getPropertyAsValue( "palindrome", nullptr ) );
+            palindromeImpulse( palindromeParameter.getValue() );
             nEnvPointsParameter.referTo( parameters.state.getPropertyAsValue( "nEnvPoints", nullptr ) );
 //            envelopeParameter = *parameters.getRawParameterValue("envelope");
             auto nPoints = (int)nEnvPointsParameter.getValue();
@@ -300,7 +303,7 @@ void Sjf_convoAudioProcessor::setNonAutomatableParameterValues()
     startParameter.setValue( (float)startEnd[ 0 ] );
     endParameter.setValue( startEnd[ 1 ] );
     reverseParameter.setValue( getReverseState() );
-    
+    palindromeParameter.setValue( getPalindromeState() );
     auto env = getAmplitudeEnvelope();
     auto nPoints = env.size();
     nEnvPointsParameter.setValue( (int)nPoints );
