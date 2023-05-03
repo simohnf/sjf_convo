@@ -34,10 +34,11 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     
     addAndMakeVisible( &reverseImpulseButton );
     reverseImpulseButton.setButtonText( "Reverse" );
+    DBG("REVERSE 1 " << ( audioProcessor.getReverseState() ? "ON" : "OFF" ) );
     reverseImpulseButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
     reverseImpulseButton.onClick = [this]
     {
-        if (m_justRestoreGUIFlag){ return; } // ?????
+//        if (m_justRestoreGUIFlag){ return; } // ?????
         audioProcessor.reverseImpulse( reverseImpulseButton.getToggleState() );
         waveformThumbnail.reverseEnvelope();
         auto minMax = startAndEndSlider.getMinAndMaxValues();
@@ -56,10 +57,11 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
 
     addAndMakeVisible( &palindromeButton );
     palindromeButton.setButtonText( "Palindrome" );
+    DBG("PALINDROME 1 " << ( audioProcessor.getPalindromeState() ? "ON" : "OFF" ) );
     palindromeButton.setToggleState( audioProcessor.getPalindromeState(), juce::dontSendNotification );
     palindromeButton.onClick = [this]
     {
-        if (m_justRestoreGUIFlag){ return; } // ?????
+//        if (m_justRestoreGUIFlag){ return; } // ?????
         audioProcessor.palindromeImpulse( palindromeButton.getToggleState() );
     };
     palindromeButton.setTooltip( "This will copy a reverse version of the trimmed section of the impulse response to the end of the impulse response for use in the convolution");
@@ -90,7 +92,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     startAndEndSlider.setMinAndMaxValues( audioProcessor.getStartAndEnd()[ 0 ], audioProcessor.getStartAndEnd()[ 1 ] );
     startAndEndSlider.onMouseEvent = [this]
     {
-        if (m_justRestoreGUIFlag){ return; } /// ?????
+//        if (m_justRestoreGUIFlag){ return; } /// ?????
         auto minMax = startAndEndSlider.getMinAndMaxValues();
         audioProcessor.setImpulseStartAndEnd( minMax[ 0 ], minMax[ 1 ] );
     };
@@ -121,7 +123,7 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
     waveformThumbnail.shouldOutputOnMouseUp( true );
     waveformThumbnail.onMouseEvent = [this]
     {
-        if (m_justRestoreGUIFlag){ return; }
+//        if (m_justRestoreGUIFlag){ return; }
         audioProcessor.setAmplitudeEnvelope( waveformThumbnail.getEnvelope() );
         waveformThumbnail.drawWaveform( audioProcessor.getIRBuffer() );
     };
@@ -178,8 +180,8 @@ Sjf_convoAudioProcessorEditor::Sjf_convoAudioProcessorEditor (Sjf_convoAudioProc
 //    setNonAutomatableValues();
     
     setSize (WIDTH, HEIGHT);
-    m_justRestoreGUIFlag = false;
-    startTimer( 200 );
+//    m_justRestoreGUIFlag = false;
+    startTimer( 300 );
     
 //    DBG("INTERFACE CREATED");
 }
@@ -264,16 +266,18 @@ void Sjf_convoAudioProcessorEditor::timerCallback()
 
 void Sjf_convoAudioProcessorEditor::setNonAutomatableValues()
 {
-    m_justRestoreGUIFlag = true;
+//    m_justRestoreGUIFlag = true;
+    DBG("REVERSE " << ( audioProcessor.getReverseState() ? "ON" : "OFF" ) );
     reverseImpulseButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
-    palindromeButton.setToggleState( audioProcessor.getReverseState(), juce::dontSendNotification );
+    DBG("PALINDROME " << ( audioProcessor.getPalindromeState() ? "ON" : "OFF" ) );
+    palindromeButton.setToggleState( audioProcessor.getPalindromeState(), juce::dontSendNotification );
     stretchSlider.setValue( audioProcessor.getStretchFactor() );
     
     auto startEnd = audioProcessor.getStartAndEnd();
     startAndEndSlider.setMinAndMaxValues( startEnd[ 0 ], startEnd[ 1 ] );
     auto env = audioProcessor.getAmplitudeEnvelope();
     waveformThumbnail.setEnvelope( env );
-    m_justRestoreGUIFlag = false;
+//    m_justRestoreGUIFlag = false;
 
     
     //        waveformThumbnail

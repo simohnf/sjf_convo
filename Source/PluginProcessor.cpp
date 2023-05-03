@@ -185,7 +185,7 @@ void Sjf_convoAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     auto dry = std::sqrt( 1 - (m_wet*0.01f) );
     buffer.applyGain( dry );
     m_convBuffer.applyGain( wet );
-    DBG( "dry " << dry << " wet " << wet );
+//    DBG( "dry " << dry << " wet " << wet );
     for ( int c = 0; c < totalNumOutputChannels; c++ )
     {
         buffer.addFrom( c, 0, m_convBuffer, c, 0, bufferSize );
