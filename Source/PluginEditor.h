@@ -12,7 +12,6 @@
 #include "PluginProcessor.h"
 #include "../../sjf_audio/sjf_widgets.h"
 #include "../../sjf_audio/sjf_LookAndFeel.h"
-#include "../../sjf_audio/TwoValueSliderAttachment.h"
 //==============================================================================
 /**
 */
