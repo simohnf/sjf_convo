@@ -10,8 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "../../sjf_audio/sjf_widgets.h"
-#include "../../sjf_audio/sjf_LookAndFeel.h"
+#include "../sjf_audio/sjf_widgets.h"
+#include "../sjf_audio/sjf_LookAndFeel.h"
 //==============================================================================
 /**
 */
@@ -43,7 +43,7 @@ private:
     juce::ToggleButton tooltipsToggle;
     
     juce::Label tooltipLabel, fileNameLabel;
-     juce::String MAIN_TOOLTIP = "sjf_convo: \nConvolution plugin... primarily designed as a convolution reverb algorithm, but should be capable of convolving input signal with audio file (although the larger the file the more intense the CPU usage..)\n";
+    juce::String MAIN_TOOLTIP = "sjf_convo: \nConvolution plugin... primarily designed as a convolution reverb algorithm, but should be capable of convolving input signal with audio file (although the larger the file the more intense the CPU usage..)\n";
 
     
     sjf_waveform waveformThumbnail;

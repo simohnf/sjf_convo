@@ -10,8 +10,8 @@
 
 #include <JuceHeader.h>
 //#include "../../sjf_audio/JuceFIR.h"
-#include "../../sjf_audio/sjf_convo.h"
-#include "../../sjf_audio/sjf_audioUtilities.h"
+#include "../sjf_audio/sjf_convo.h"
+#include "../sjf_audio/sjf_audioUtilities.h"
 //==============================================================================
 /**
 */
