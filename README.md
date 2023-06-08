@@ -14,7 +14,7 @@ In terminal
 ```
 git clone https://github.com/simohnf/sjf_convo
 
-cd sjf_AAIM_Drums
+cd sjf_convo
 
 git submodule update --init --recursive
 ```
