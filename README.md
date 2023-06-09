@@ -4,6 +4,18 @@
 
 This is a partitioned convolution plugin. 
 
-NOTE: This requires functions and classes contained in [sjf_audio](https://github.com/simohnf/sjf_audio)
-
 [More info, audio samples, and installer](https://simohnf.github.io./plug-ins/sjf_convo/)
+
+
+------------------------------
+# To download source:
+
+In terminal 
+```
+git clone https://github.com/simohnf/sjf_convo
+
+cd sjf_convo
+
+git submodule update --init --recursive
+```
+---------------
